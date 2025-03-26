@@ -18,11 +18,11 @@ services:
       start_period: 5s
 
   # Опционально: JSON-сервер для API-заглушек
-  # api:
-  #   image: typicode/json-server
-  #   ports:
-  #     - "3001:80"
-  #   volumes:
-  #     - ./api-mock:/data
-  #   command: json-server --watch /data/db.json --port 80 --host 0.0.0.0
-  #   restart: unless-stopped
+  api:
+    image: typicode/json-server
+    ports:
+      - "3001:80"
+    volumes:
+      - ./api-mock:/data
+    command: json-server --watch db.json --port 80 --host 0.0.0.0
+    restart: unless-stopped

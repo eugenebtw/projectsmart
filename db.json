@@ -1,0 +1,212 @@
+{
+    "rooms": [
+      {
+        "id": "living-room",
+        "name": "Living Room",
+        "position": { "x": 0, "y": 0, "z": 0 },
+        "dimensions": { "x": 6, "y": 3, "z": 5 },
+        "devices": [
+          "light-living-1",
+          "light-living-2",
+          "thermostat-living",
+          "outlet-living-1",
+          "outlet-living-2"
+        ]
+      },
+      {
+        "id": "bedroom",
+        "name": "Bedroom",
+        "position": { "x": 6, "y": 0, "z": 0 },
+        "dimensions": { "x": 5, "y": 3, "z": 4 },
+        "devices": [
+          "light-bedroom-1",
+          "light-bedroom-2",
+          "thermostat-bedroom",
+          "humidity-bedroom"
+        ]
+      },
+      {
+        "id": "kitchen",
+        "name": "Kitchen",
+        "position": { "x": 0, "y": 0, "z": -5 },
+        "dimensions": { "x": 4, "y": 3, "z": 5 },
+        "devices": [
+          "light-kitchen-1",
+          "light-kitchen-2",
+          "thermostat-kitchen",
+          "outlet-kitchen-1",
+          "outlet-kitchen-2",
+          "humidity-kitchen"
+        ]
+      }
+    ],
+    "devices": [
+      {
+        "id": "light-living-1",
+        "name": "Living Room Ceiling Light",
+        "roomId": "living-room",
+        "type": "light",
+        "power": 60,
+        "isOn": true,
+        "brightness": 80,
+        "color": "#ffdd99"
+      },
+      {
+        "id": "light-living-2",
+        "name": "Living Room Floor Lamp",
+        "roomId": "living-room",
+        "type": "light",
+        "power": 40,
+        "isOn": false,
+        "brightness": 60,
+        "color": "#ffffff"
+      },
+      {
+        "id": "thermostat-living",
+        "name": "Living Room Thermostat",
+        "roomId": "living-room",
+        "type": "thermostat",
+        "power": 80,
+        "isOn": true,
+        "currentTemperature": 22.5,
+        "targetTemperature": 23.0,
+        "mode": "heat"
+      },
+      {
+        "id": "outlet-living-1",
+        "name": "Living Room Outlet 1",
+        "roomId": "living-room",
+        "type": "outlet",
+        "power": 120,
+        "isOn": true,
+        "connectedDeviceName": "TV"
+      },
+      {
+        "id": "outlet-living-2",
+        "name": "Living Room Outlet 2",
+        "roomId": "living-room",
+        "type": "outlet",
+        "power": 0,
+        "isOn": false
+      },
+      {
+        "id": "light-bedroom-1",
+        "name": "Bedroom Ceiling Light",
+        "roomId": "bedroom",
+        "type": "light",
+        "power": 50,
+        "isOn": false,
+        "brightness": 70,
+        "color": "#fff0e6"
+      },
+      {
+        "id": "light-bedroom-2",
+        "name": "Bedroom Bedside Lamp",
+        "roomId": "bedroom",
+        "type": "light",
+        "power": 25,
+        "isOn": true,
+        "brightness": 40,
+        "color": "#ffe6cc"
+      },
+      {
+        "id": "thermostat-bedroom",
+        "name": "Bedroom Thermostat",
+        "roomId": "bedroom",
+        "type": "thermostat",
+        "power": 80,
+        "isOn": true,
+        "currentTemperature": 21.0,
+        "targetTemperature": 22.0,
+        "mode": "heat"
+      },
+      {
+        "id": "humidity-bedroom",
+        "name": "Bedroom Humidifier",
+        "roomId": "bedroom",
+        "type": "humidity",
+        "power": 45,
+        "isOn": true,
+        "currentHumidity": 42.5
+      },
+      {
+        "id": "light-kitchen-1",
+        "name": "Kitchen Main Light",
+        "roomId": "kitchen",
+        "type": "light",
+        "power": 80,
+        "isOn": true,
+        "brightness": 100,
+        "color": "#ffffff"
+      },
+      {
+        "id": "light-kitchen-2",
+        "name": "Kitchen Under Cabinet Light",
+        "roomId": "kitchen",
+        "type": "light",
+        "power": 30,
+        "isOn": false,
+        "brightness": 80,
+        "color": "#ffffff"
+      },
+      {
+        "id": "thermostat-kitchen",
+        "name": "Kitchen Thermostat",
+        "roomId": "kitchen",
+        "type": "thermostat",
+        "power": 80,
+        "isOn": true,
+        "currentTemperature": 23.0,
+        "targetTemperature": 23.0,
+        "mode": "heat"
+      },
+      {
+        "id": "outlet-kitchen-1",
+        "name": "Kitchen Outlet 1",
+        "roomId": "kitchen",
+        "type": "outlet",
+        "power": 1500,
+        "isOn": true,
+        "connectedDeviceName": "Microwave"
+      },
+      {
+        "id": "outlet-kitchen-2",
+        "name": "Kitchen Outlet 2",
+        "roomId": "kitchen",
+        "type": "outlet",
+        "power": 900,
+        "isOn": true,
+        "connectedDeviceName": "Coffee Maker"
+      },
+      {
+        "id": "humidity-kitchen",
+        "name": "Kitchen Humidity Sensor",
+        "roomId": "kitchen",
+        "type": "humidity",
+        "power": 5,
+        "isOn": true,
+        "currentHumidity": 55.0
+      }
+    ],
+    "deviceHistories": [
+      {
+        "id": "light-living-1-history",
+        "deviceId": "light-living-1",
+        "data": []
+      },
+      {
+        "id": "thermostat-living-history",
+        "deviceId": "thermostat-living",
+        "data": []
+      },
+      {
+        "id": "humidity-bedroom-history",
+        "deviceId": "humidity-bedroom",
+        "data": []
+      }
+    ],
+    "health": {
+      "status": "OK",
+      "timestamp": 1647410296123
+    }
+  }
