@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  # Опционально: JSON-сервер для API-заглушек
+  # api:
+  #   image: typicode/json-server
+  #   ports:
+  #     - "3001:80"
+  #   volumes:
+  #     - ./api-mock:/data
+  #   command: json-server --watch /data/db.json --port 80 --host 0.0.0.0
+  #   restart: unless-stopped
