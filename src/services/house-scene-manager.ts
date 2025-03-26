@@ -1,4 +1,3 @@
-// src/services/house-scene-manager.ts
 import * as THREE from 'three';
 import type { Room, SmartDevice, Light, Fan } from '../types';
 

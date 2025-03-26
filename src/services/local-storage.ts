@@ -1,4 +1,3 @@
-// src/services/local-storage.ts
 import type { Room, SmartDevice } from '../types';
 
 /**

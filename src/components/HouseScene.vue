@@ -186,7 +186,7 @@ const buildHouse = () => {
   const rooms = houseStore.rooms;
   
   // Position variables to layout the rooms
-  let xOffset = -10;
+  let xOffset = -17.5;
   const zOffset = 0;
   const roomSpacing = 10;
   
