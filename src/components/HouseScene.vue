@@ -245,6 +245,7 @@ const buildHouse = () => {
       } else if (device.type === 'fan') {
         // Create fan
         const fanBaseGeometry = new THREE.CylinderGeometry(0.2, 0.2, 0.1, 16);
+        // const fanBaseGeometry = new THREE.CylinderGeometry(0.5, 0.5, 0.1, 3);
         const fanBaseMaterial = new THREE.MeshStandardMaterial({ color: 0x444444 });
         const fanBase = new THREE.Mesh(fanBaseGeometry, fanBaseMaterial);
 
@@ -257,10 +258,19 @@ const buildHouse = () => {
 
         for (let i = 0; i < 3; i++) {
           const blade = new THREE.Mesh(fanBladeGeometry, fanBladeMaterial);
-          blade.position.x = 0.6;
+          blade.position.x = 0;
+          // blade.rotation.y += 0.05;
           blade.rotation.y = (Math.PI * 2 / 3) * i;
           fanGroup.add(blade);
         }
+
+        // for (let i = 0; i < 3; i++) {
+        //   const blade = new THREE.Mesh(fanBladeGeometry, fanBladeMaterial);
+        //   blade.position.x = -0.6;
+        //   blade.rotation.y += 0.05;
+        //   // blade.rotation.y = (Math.PI * 2 / 3) * i;
+        //   fanGroup.add(blade);
+        // }
 
         // Position the fan group
         fanGroup.position.set(
