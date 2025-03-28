@@ -22,7 +22,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, ref, onMounted } from 'vue';
 import DeviceDragDrop from './components/DeviceDragDrop.vue';
 import HouseScene from './components/HouseScene.vue';
 import DeviceController from './components/DeviceController.vue';
@@ -30,8 +30,8 @@ import SensorChart from './components/SensorChart.vue';
 import NotificationSystem from './components/NotificationSystem.vue';
 import EnergyChart from './components/EnergyChart.vue';
 import RoomCreator from './components/RoomCreator.vue';
-import TabItem from './components/TabItem.vue'
-import TabPanel from './components/TabPanel.vue'
+import TabItem from './components/TabItem.vue';
+import TabPanel from './components/TabPanel.vue';
 
 export default defineComponent({
   name: 'App',
@@ -53,6 +53,18 @@ export default defineComponent({
       isDarkTheme.value = !isDarkTheme.value;
       document.documentElement.classList.toggle('dark-theme', isDarkTheme.value);
     };
+    
+    // Проверяем предпочтения пользователя по цветовой схеме
+    onMounted(() => {
+      // Проверяем, предпочитает ли пользователь тёмную тему
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        isDarkTheme.value = true;
+        document.documentElement.classList.add('dark-theme');
+      }
+      
+      // Добавляем класс на body для индикации, что приложение загружено
+      document.body.classList.add('app-loaded');
+    });
     
     return {
       isDarkTheme,
@@ -95,6 +107,9 @@ body {
   max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
+  height: calc(100vh - 40px); /* Полная высота минус padding */
+  display: flex;
+  flex-direction: column;
 }
 
 header {
@@ -122,15 +137,19 @@ h1 {
 .main-content {
   display: flex;
   gap: 20px;
+  flex: 1;
+  min-height: 0; /* Важно для корректной работы flex и overflow */
 }
 
 .scene-container {
   flex: 1;
-  min-height: 600px;
+  min-height: 500px;
+  height: 100%; /* Явно указываем высоту */
   background-color: var(--card-bg);
   border-radius: 8px;
   box-shadow: var(--card-shadow);
   overflow: hidden;
+  position: relative; /* Для позиционирования внутренних элементов */
 }
 
 .control-panels {
@@ -138,12 +157,26 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  overflow-y: auto; /* Разрешаем прокрутку, если панели большие */
+}
+
+/* Отключаем дефолтную анимацию для улучшения производительности при инициализации сцены */
+.app-loaded * {
+  animation-delay: 0s !important;
+  animation-duration: 0s !important;
+  transition-delay: 0s !important;
+  transition-duration: 0s !important;
 }
 
 /* Responsive design */
 @media (max-width: 1024px) {
   .main-content {
     flex-direction: column;
+  }
+  
+  .scene-container {
+    height: 50vh; /* Половина высоты на мобильных */
+    min-height: 300px;
   }
   
   .control-panels {

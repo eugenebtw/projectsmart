@@ -156,39 +156,41 @@ const updateFanSpeed = (deviceId: string, event: Event) => {
 
 <style scoped>
 .controller {
-  background-color: #f5f5f5;
+  background-color: var(--card-bg);
   border-radius: 8px;
   padding: 20px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--card-shadow);
+  color: var(--text-color);
 }
 
-h2 {
+h2, h3 {
   margin-top: 0;
-  color: #333;
+  color: var(--text-color);
 }
 
 .energy-monitor {
-  background-color: #fff;
+  background-color: var(--card-bg);
   border-radius: 8px;
   padding: 15px;
   margin-bottom: 20px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
   transition: background-color 0.3s;
+  border: 1px solid var(--border-color);
 }
 
 .energy-monitor.overload {
-  background-color: #ffeeee;
+  background-color: rgba(244, 67, 54, 0.1);
   animation: pulse 1s infinite alternate;
 }
 
 @keyframes pulse {
-  from { background-color: #ffeeee; }
-  to { background-color: #ffcccc; }
+  from { background-color: rgba(244, 67, 54, 0.1); }
+  to { background-color: rgba(244, 67, 54, 0.2); }
 }
 
 .energy-bar {
   height: 20px;
-  background-color: #e0e0e0;
+  background-color: var(--border-color);
   border-radius: 10px;
   overflow: hidden;
   margin: 10px 0;
@@ -196,12 +198,12 @@ h2 {
 
 .energy-fill {
   height: 100%;
-  background-color: #4caf50;
+  background-color: var(--success-color);
   transition: width 0.3s, background-color 0.3s;
 }
 
 .overload .energy-fill {
-  background-color: #f44336;
+  background-color: var(--danger-color);
 }
 
 .rooms-tabs {
@@ -214,24 +216,26 @@ h2 {
 
 .rooms-tabs button {
   padding: 8px 15px;
-  background-color: #e0e0e0;
+  background-color: var(--border-color);
   border: none;
   border-radius: 6px;
   cursor: pointer;
   flex-shrink: 0;
   transition: background-color 0.2s;
+  color: var(--text-color);
 }
 
 .rooms-tabs button.active {
-  background-color: #2196f3;
+  background-color: var(--accent-color);
   color: white;
 }
 
 .room-controls {
-  background-color: #fff;
+  background-color: var(--card-bg);
   border-radius: 8px;
   padding: 15px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-color);
 }
 
 .ambient-info {
@@ -242,22 +246,28 @@ h2 {
 
 .info-box {
   flex: 1;
-  background-color: #f8f8f8;
+  background-color: rgba(0, 0, 0, 0.03);
   border-radius: 6px;
   padding: 10px;
   text-align: center;
+  border: 1px solid var(--border-color);
+}
+
+.dark-theme .info-box {
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .info-label {
   font-size: 14px;
-  color: #666;
+  color: var(--text-color);
+  opacity: 0.7;
   margin-bottom: 5px;
 }
 
 .info-value {
   font-size: 24px;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
 }
 
 .devices-list {
@@ -267,7 +277,7 @@ h2 {
 }
 
 .device-item {
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   overflow: hidden;
 }
@@ -276,36 +286,43 @@ h2 {
   display: flex;
   align-items: center;
   padding: 10px 15px;
-  background-color: #f8f8f8;
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.dark-theme .device-header {
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .device-name {
   flex: 1;
   font-weight: bold;
+  color: var(--text-color);
 }
 
 .device-power {
   margin-right: 15px;
-  color: #666;
+  color: var(--text-color);
+  opacity: 0.7;
 }
 
 .toggle-button {
   padding: 5px 10px;
   border: none;
   border-radius: 4px;
-  background-color: #f44336;
+  background-color: var(--danger-color);
   color: white;
   cursor: pointer;
   transition: background-color 0.2s;
 }
 
 .toggle-button.on {
-  background-color: #4caf50;
+  background-color: var(--success-color);
 }
 
 .device-controls {
   padding: 15px;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-color);
 }
 
 .slider-container {
@@ -318,7 +335,7 @@ input[type="range"] {
   width: 100%;
   height: 6px;
   -webkit-appearance: none;
-  background-color: #e0e0e0;
+  background-color: var(--border-color);
   border-radius: 3px;
   outline: none;
 }
@@ -327,7 +344,7 @@ input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 16px;
   height: 16px;
-  background-color: #2196f3;
+  background-color: var(--accent-color);
   border-radius: 50%;
   cursor: pointer;
 }
