@@ -220,101 +220,77 @@ const onMouseClick = (event: MouseEvent) => {
 
 // Setup scene
 const setupScene = () => {
-  if (!sceneContainer.value) {
-    console.error("sceneContainer не найден!");
-    return;
-  }
+  if (!sceneContainer.value) return;
   
-  try {
-    // Проверяем размеры контейнера
-    const width = sceneContainer.value.clientWidth;
-    const height = sceneContainer.value.clientHeight;
-    
-    if (width === 0 || height === 0) {
-      console.warn("Контейнер сцены имеет нулевые размеры. Ширина:", width, "Высота:", height);
-      // Повторная попытка через 500мс
-      setTimeout(setupScene, 500);
-      return;
-    }
-    
-    console.log("Инициализация сцены с размерами:", width, "x", height);
-    
-    // Create scene
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xeceff1); // Светло-серый фон
-    
-    // Create camera
-    const aspect = width / height;
-    camera = new THREE.PerspectiveCamera(60, aspect, 0.1, 1000);
-    camera.position.set(20, 15, 20);
-    camera.lookAt(0, 0, 0);
-    
-    // Create renderer
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(width, height);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    sceneContainer.value.appendChild(renderer.domElement);
-    
-    // Create orbit controls
-    controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.maxPolarAngle = Math.PI / 2 - 0.1;  // Ограничиваем камеру, чтобы не смотреть под дом
-    controls.minDistance = 5;
-    controls.maxDistance = 50;
-    
-    // Create raycaster for interaction
-    raycaster = new THREE.Raycaster();
-    mouse = new THREE.Vector2();
-    
-    // Add ambient light
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-    scene.add(ambientLight);
-    
-    // Add directional light (sun)
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(20, 30, 20);
-    directionalLight.castShadow = true;
-    directionalLight.shadow.mapSize.width = 2048;
-    directionalLight.shadow.mapSize.height = 2048;
-    directionalLight.shadow.camera.near = 0.5;
-    directionalLight.shadow.camera.far = 100;
-    directionalLight.shadow.camera.left = -30;
-    directionalLight.shadow.camera.right = 30;
-    directionalLight.shadow.camera.top = 30;
-    directionalLight.shadow.camera.bottom = -30;
-    scene.add(directionalLight);
-    
-    // Add floor/ground
-    createGround();
-    
-    // Build the house from store data
-    buildHouse();
-    
-    // Add event listeners
-    window.addEventListener('resize', onWindowResize);
-    sceneContainer.value.addEventListener('click', onMouseClick);
+  // Create scene
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xeceff1); // Светло-серый фон
+  
+  // Create camera
+  const aspect = sceneContainer.value.clientWidth / sceneContainer.value.clientHeight;
+  camera = new THREE.PerspectiveCamera(60, aspect, 0.1, 1000);
+  camera.position.set(20, 15, 20);
+  camera.lookAt(0, 0, 0);
+  
+  // Create renderer
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(sceneContainer.value.clientWidth, sceneContainer.value.clientHeight);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  sceneContainer.value.appendChild(renderer.domElement);
+  
+  // Create orbit controls
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.05;
+  controls.maxPolarAngle = Math.PI / 2 - 0.1;  // Ограничиваем камеру, чтобы не смотреть под дом
+  controls.minDistance = 5;
+  controls.maxDistance = 50;
+  
+  // Create raycaster for interaction
+  raycaster = new THREE.Raycaster();
+  mouse = new THREE.Vector2();
+  
+  // Add ambient light
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+  scene.add(ambientLight);
+  
+  // Add directional light (sun)
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  directionalLight.position.set(20, 30, 20);
+  directionalLight.castShadow = true;
+  directionalLight.shadow.mapSize.width = 2048;
+  directionalLight.shadow.mapSize.height = 2048;
+  directionalLight.shadow.camera.near = 0.5;
+  directionalLight.shadow.camera.far = 100;
+  directionalLight.shadow.camera.left = -30;
+  directionalLight.shadow.camera.right = 30;
+  directionalLight.shadow.camera.top = 30;
+  directionalLight.shadow.camera.bottom = -30;
+  scene.add(directionalLight);
+  
+  // Add floor/ground
+  createGround();
+  
+  // Build the house from store data
+  buildHouse();
+  
+  // Add event listeners
+  window.addEventListener('resize', onWindowResize);
+  sceneContainer.value.addEventListener('click', onMouseClick);
 
-    // Start animation
-    animate();
-    
-    // Done loading
-    isLoading.value = false;
-    
-    // Показываем подсказку на 5 секунд
-    document.querySelector('.controls-hint')?.classList.add('visible');
-    hintTimerId = window.setTimeout(() => {
-      document.querySelector('.controls-hint')?.classList.remove('visible');
-    }, 5000);
-    
-    console.log("Сцена успешно инициализирована!");
-  } catch (error) {
-    console.error("Ошибка при инициализации сцены:", error);
-    // Повторная попытка через 1 секунду в случае ошибки
-    setTimeout(setupScene, 1000);
-  }
+  // Start animation
+  animate();
+  
+  // Done loading
+  isLoading.value = false;
+  
+  // Показываем подсказку на 5 секунд
+  document.querySelector('.controls-hint')?.classList.add('visible');
+  hintTimerId = window.setTimeout(() => {
+    document.querySelector('.controls-hint')?.classList.remove('visible');
+  }, 5000);
 };
 
 // Создание ландшафта вокруг дома
@@ -724,6 +700,319 @@ const createDoor = (
       break;
   }
   
+// Helper function to create a wall
+const createWall = (width: number, height: number, depth: number, posX: number, posY: number, posZ: number, rotY: number = 0) => {
+    const wallGeometry = new THREE.BoxGeometry(width, height, depth);
+    const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+    wall.position.set(posX, posY, posZ);
+    wall.rotation.y = rotY;
+    wall.castShadow = true;
+    wall.receiveShadow = true;
+    roomGroup.add(wall);
+    walls.push(wall);
+    return wall;
+  };
+  
+  // Helper function to create furniture
+  const createFurniture = (type: string, size: THREE.Vector3, position: THREE.Vector3, rotation: number = 0, color: number = 0x8B4513) => {
+    const furnitureGroup = new THREE.Group();
+    furnitureGroup.position.copy(position);
+    furnitureGroup.rotation.y = rotation;
+    
+    let geometry;
+    const material = new THREE.MeshStandardMaterial({ 
+      color: color,
+      roughness: 0.7,
+      metalness: 0.1
+    });
+    
+    switch(type) {
+      case 'table':
+        // Table top
+        geometry = new THREE.BoxGeometry(size.x, 0.05, size.z);
+        const tableTop = new THREE.Mesh(geometry, material);
+        tableTop.position.y = size.y;
+        tableTop.castShadow = true;
+        furnitureGroup.add(tableTop);
+        
+        // Table legs
+        const legGeometry = new THREE.BoxGeometry(0.05, size.y, 0.05);
+        const legMaterial = new THREE.MeshStandardMaterial({ color: color });
+        
+        // Add 4 legs at the corners
+        const legPositions = [
+          new THREE.Vector3(size.x/2 - 0.025, size.y/2, size.z/2 - 0.025),
+          new THREE.Vector3(size.x/2 - 0.025, size.y/2, -size.z/2 + 0.025),
+          new THREE.Vector3(-size.x/2 + 0.025, size.y/2, size.z/2 - 0.025),
+          new THREE.Vector3(-size.x/2 + 0.025, size.y/2, -size.z/2 + 0.025)
+        ];
+        
+        legPositions.forEach(pos => {
+          const leg = new THREE.Mesh(legGeometry, legMaterial);
+          leg.position.copy(pos);
+          leg.castShadow = true;
+          furnitureGroup.add(leg);
+        });
+        break;
+        
+      case 'chair':
+        // Chair seat
+        geometry = new THREE.BoxGeometry(size.x, 0.05, size.z);
+        const seat = new THREE.Mesh(geometry, material);
+        seat.position.y = size.y * 0.6;
+        seat.castShadow = true;
+        furnitureGroup.add(seat);
+        
+        // Chair back
+        const backGeometry = new THREE.BoxGeometry(size.x, size.y * 0.6, 0.05);
+        const back = new THREE.Mesh(backGeometry, material);
+        back.position.set(0, size.y * 0.9, -size.z/2 + 0.025);
+        back.castShadow = true;
+        furnitureGroup.add(back);
+        
+        // Chair legs
+        const chairLegGeometry = new THREE.BoxGeometry(0.03, size.y * 0.6, 0.03);
+        const chairLegMaterial = new THREE.MeshStandardMaterial({ color: color });
+        
+        const chairLegPositions = [
+          new THREE.Vector3(size.x/2 - 0.02, size.y * 0.3, size.z/2 - 0.02),
+          new THREE.Vector3(size.x/2 - 0.02, size.y * 0.3, -size.z/2 + 0.02),
+          new THREE.Vector3(-size.x/2 + 0.02, size.y * 0.3, size.z/2 - 0.02),
+          new THREE.Vector3(-size.x/2 + 0.02, size.y * 0.3, -size.z/2 + 0.02)
+        ];
+        
+        chairLegPositions.forEach(pos => {
+          const leg = new THREE.Mesh(chairLegGeometry, chairLegMaterial);
+          leg.position.copy(pos);
+          leg.castShadow = true;
+          furnitureGroup.add(leg);
+        });
+        break;
+        
+      case 'bed':
+        // Bed base
+        geometry = new THREE.BoxGeometry(size.x, size.y * 0.3, size.z);
+        const bedBase = new THREE.Mesh(geometry, material);
+        bedBase.position.y = size.y * 0.15;
+        bedBase.castShadow = true;
+        furnitureGroup.add(bedBase);
+        
+        // Mattress
+        const mattressGeometry = new THREE.BoxGeometry(size.x - 0.1, size.y * 0.1, size.z - 0.1);
+        const mattressMaterial = new THREE.MeshStandardMaterial({ 
+          color: 0xFFFFFF,
+          roughness: 0.9
+        });
+        const mattress = new THREE.Mesh(mattressGeometry, mattressMaterial);
+        mattress.position.y = size.y * 0.35;
+        mattress.castShadow = true;
+        furnitureGroup.add(mattress);
+        
+        // Pillows
+        const pillowGeometry = new THREE.BoxGeometry(size.x * 0.2, size.y * 0.08, size.z * 0.4);
+        const pillowMaterial = new THREE.MeshStandardMaterial({ 
+          color: 0xECECEC,
+          roughness: 0.9
+        });
+        
+        const pillow1 = new THREE.Mesh(pillowGeometry, pillowMaterial);
+        pillow1.position.set(size.x * 0.3, size.y * 0.44, 0);
+        pillow1.castShadow = true;
+        furnitureGroup.add(pillow1);
+        
+        const pillow2 = new THREE.Mesh(pillowGeometry, pillowMaterial);
+        pillow2.position.set(-size.x * 0.3, size.y * 0.44, 0);
+        pillow2.castShadow = true;
+        furnitureGroup.add(pillow2);
+        
+        // Bed headboard
+        const headboardGeometry = new THREE.BoxGeometry(size.x, size.y * 0.5, 0.1);
+        const headboard = new THREE.Mesh(headboardGeometry, material);
+        headboard.position.set(0, size.y * 0.4, -size.z/2 - 0.05);
+        headboard.castShadow = true;
+        furnitureGroup.add(headboard);
+        break;
+        
+      case 'couch':
+        // Couch base
+        geometry = new THREE.BoxGeometry(size.x, size.y * 0.4, size.z);
+        const couchBase = new THREE.Mesh(geometry, material);
+        couchBase.position.y = size.y * 0.2;
+        couchBase.castShadow = true;
+        furnitureGroup.add(couchBase);
+        
+        // Couch cushions
+        const cushionGeometry = new THREE.BoxGeometry(size.x - 0.2, size.y * 0.15, size.z - 0.1);
+        const cushionMaterial = new THREE.MeshStandardMaterial({ 
+          color: color === 0x8B4513 ? 0x607D8B : color + 0x101010, 
+          roughness: 0.9
+        });
+        const cushions = new THREE.Mesh(cushionGeometry, cushionMaterial);
+        cushions.position.y = size.y * 0.425;
+        cushions.castShadow = true;
+        furnitureGroup.add(cushions);
+        
+        // Couch back
+        const couchBackGeometry = new THREE.BoxGeometry(size.x, size.y * 0.4, 0.2);
+        const couchBack = new THREE.Mesh(couchBackGeometry, material);
+        couchBack.position.set(0, size.y * 0.4, -size.z/2 + 0.1);
+        couchBack.castShadow = true;
+        furnitureGroup.add(couchBack);
+        
+        // Couch arms
+        const armGeometry = new THREE.BoxGeometry(0.2, size.y * 0.4, size.z);
+        
+        const leftArm = new THREE.Mesh(armGeometry, material);
+        leftArm.position.set(-size.x/2 + 0.1, size.y * 0.4, 0);
+        leftArm.castShadow = true;
+        furnitureGroup.add(leftArm);
+        
+        const rightArm = new THREE.Mesh(armGeometry, material);
+        rightArm.position.set(size.x/2 - 0.1, size.y * 0.4, 0);
+        rightArm.castShadow = true;
+        furnitureGroup.add(rightArm);
+        break;
+        
+      case 'tv':
+        // TV Stand
+        const standGeometry = new THREE.BoxGeometry(size.x, size.y * 0.2, size.z * 0.6);
+        const standMaterial = new THREE.MeshStandardMaterial({ 
+          color: 0x555555,
+          roughness: 0.6,
+          metalness: 0.2
+        });
+        const stand = new THREE.Mesh(standGeometry, standMaterial);
+        stand.position.y = size.y * 0.1;
+        stand.castShadow = true;
+        furnitureGroup.add(stand);
+        
+        // TV Screen
+        const screenGeometry = new THREE.BoxGeometry(size.x, size.y * 0.6, size.z * 0.1);
+        const screenMaterial = new THREE.MeshStandardMaterial({ 
+          color: 0x111111, 
+          roughness: 0.2,
+          metalness: 0.8
+        });
+        const screen = new THREE.Mesh(screenGeometry, screenMaterial);
+        screen.position.set(0, size.y * 0.5, 0);
+        screen.castShadow = true;
+        furnitureGroup.add(screen);
+        break;
+        
+      case 'cabinet':
+        // Cabinet base
+        geometry = new THREE.BoxGeometry(size.x, size.y, size.z);
+        const cabinet = new THREE.Mesh(geometry, material);
+        cabinet.position.y = size.y/2;
+        cabinet.castShadow = true;
+        furnitureGroup.add(cabinet);
+        
+        // Cabinet doors
+        const doorGeometry = new THREE.BoxGeometry(size.x * 0.48, size.y * 0.9, 0.02);
+        const doorMaterial = new THREE.MeshStandardMaterial({ 
+          color: color === 0x8B4513 ? 0x6D4C41 : color,
+          roughness: 0.7
+        });
+        
+        const leftDoor = new THREE.Mesh(doorGeometry, doorMaterial);
+        leftDoor.position.set(-size.x * 0.24, 0, size.z/2 + 0.01);
+        leftDoor.castShadow = true;
+        furnitureGroup.add(leftDoor);
+        
+        const rightDoor = new THREE.Mesh(doorGeometry, doorMaterial);
+        rightDoor.position.set(size.x * 0.24, 0, size.z/2 + 0.01);
+        rightDoor.castShadow = true;
+        furnitureGroup.add(rightDoor);
+        
+        // Door handles
+        const handleGeometry = new THREE.CylinderGeometry(0.01, 0.01, 0.06, 8);
+        const handleMaterial = new THREE.MeshStandardMaterial({ 
+          color: 0xBDBDBD, 
+          metalness: 0.8
+        });
+        
+        const leftHandle = new THREE.Mesh(handleGeometry, handleMaterial);
+        leftHandle.rotation.z = Math.PI / 2;
+        leftHandle.position.set(-size.x * 0.1, 0, size.z/2 + 0.03);
+        leftHandle.castShadow = true;
+        furnitureGroup.add(leftHandle);
+        
+        const rightHandle = new THREE.Mesh(handleGeometry, handleMaterial);
+        rightHandle.rotation.z = Math.PI / 2;
+        rightHandle.position.set(size.x * 0.1, 0, size.z/2 + 0.03);
+        rightHandle.castShadow = true;
+        furnitureGroup.add(rightHandle);
+        break;
+        
+      case 'fridge':
+        // Fridge body
+        geometry = new THREE.BoxGeometry(size.x, size.y, size.z);
+        const fridgeMaterial = new THREE.MeshStandardMaterial({ 
+          color: 0xEEEEEE,
+          roughness: 0.3,
+          metalness: 0.5
+        });
+        const fridge = new THREE.Mesh(geometry, fridgeMaterial);
+        fridge.position.y = size.y/2;
+        fridge.castShadow = true;
+        furnitureGroup.add(fridge);
+        
+        // Fridge door
+        const fridgeDoorGeometry = new THREE.BoxGeometry(size.x - 0.02, size.y * 0.65, 0.05);
+        const fridgeDoor = new THREE.Mesh(fridgeDoorGeometry, fridgeMaterial);
+        fridgeDoor.position.set(0, size.y * 0.25, size.z/2 + 0.025);
+        fridgeDoor.castShadow = true;
+        furnitureGroup.add(fridgeDoor);
+        
+        // Freezer door
+        const freezerDoorGeometry = new THREE.BoxGeometry(size.x - 0.02, size.y * 0.3, 0.05);
+        const freezerDoor = new THREE.Mesh(freezerDoorGeometry, fridgeMaterial);
+        freezerDoor.position.set(0, size.y * 0.75, size.z/2 + 0.025);
+        freezerDoor.castShadow = true;
+        furnitureGroup.add(freezerDoor);
+        
+        // Door handles
+        const fridgeHandleGeometry = new THREE.CylinderGeometry(0.01, 0.01, 0.2, 8);
+        const fridgeHandleMaterial = new THREE.MeshStandardMaterial({ 
+          color: 0x9E9E9E, 
+          metalness: 0.8
+        });
+        
+        const fridgeHandle = new THREE.Mesh(fridgeHandleGeometry, fridgeHandleMaterial);
+        fridgeHandle.rotation.z = Math.PI / 2;
+        fridgeHandle.position.set(size.x/2 - 0.05, size.y * 0.25, size.z/2 + 0.05);
+        fridgeHandle.castShadow = true;
+        furnitureGroup.add(fridgeHandle);
+        
+        const freezerHandle = new THREE.Mesh(fridgeHandleGeometry, fridgeHandleMaterial);
+        freezerHandle.rotation.z = Math.PI / 2;
+        freezerHandle.position.set(size.x/2 - 0.05, size.y * 0.75, size.z/2 + 0.05);
+        freezerHandle.castShadow = true;
+        furnitureGroup.add(freezerHandle);
+        break;
+        
+      case 'rug':
+        // Simple rug with rounded corners
+        geometry = new THREE.BoxGeometry(size.x, 0.02, size.z);
+        const rugMaterial = new THREE.MeshStandardMaterial({ 
+          color: color,
+          roughness: 0.9,
+          metalness: 0
+        });
+        const rug = new THREE.Mesh(geometry, rugMaterial);
+        rug.position.y = 0.01; // Slightly above the floor
+        rug.receiveShadow = true;
+        furnitureGroup.add(rug);
+        break;
+    }
+    
+    roomGroup.add(furnitureGroup);
+    return furnitureGroup;
+  };
+
+  // Создаем дверной проем (вырезая часть стены)
+  // Это делается путем создания дополнительных частей стены вместо вырезания части
+  
   // Создаем дверную раму
   const frameGeometry = new THREE.BoxGeometry(doorWidth + 0.1, doorHeight + 0.05, wallThickness * 1.1);
   const frameMaterial = materials.frame;
@@ -1101,33 +1390,20 @@ const animate = () => {
 
 // Lifecycle hooks
 onMounted(() => {
-  console.log("HouseScene компонент смонтирован");
-  
-  // Функция для проверки готовности DOM и запуска сцены
-  const initializeScene = () => {
-    if (!sceneContainer.value) {
-      console.warn("sceneContainer.value еще не определен, ожидание...");
-      setTimeout(initializeScene, 300);
-      return;
-    }
-    
-    // Проверка, вставлен ли контейнер в DOM и имеет ли он размеры
-    if (sceneContainer.value.offsetHeight > 0 && sceneContainer.value.offsetWidth > 0) {
-      console.log("Контейнер готов, размеры:", 
-                  sceneContainer.value.offsetWidth, "x", sceneContainer.value.offsetHeight);
+  // Используем MutationObserver для отслеживания изменений в DOM
+  const checkAndInitialize = () => {
+    if (sceneContainer.value && sceneContainer.value.offsetHeight > 0 && sceneContainer.value.offsetWidth > 0) {
       setupScene();
+      console.log("3D сцена инициализирована");
     } else {
-      console.warn("Контейнер имеет нулевые размеры, ожидание...");
-      // Используем requestAnimationFrame для следующей проверки
-      // Это позволяет дождаться рендеринга страницы
-      requestAnimationFrame(() => {
-        setTimeout(initializeScene, 300);
-      });
+      console.log("Ожидание готовности контейнера сцены...");
+      // Повторная попытка через 300мс
+      setTimeout(checkAndInitialize, 300);
     }
   };
-  
-  // Запускаем инициализацию
-  initializeScene();
+
+  // Запустим первую проверку с небольшой задержкой
+  setTimeout(checkAndInitialize, 300);
 });
 
 onUnmounted(() => {
