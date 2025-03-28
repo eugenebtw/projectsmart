@@ -44,17 +44,6 @@ const roomDevices: Map<string, THREE.Object3D> = new Map();
 
 // Materials library
 const materials = {
-  // Стены
-  wall: new THREE.MeshStandardMaterial({ 
-    color: 0xf5f5f5, 
-    roughness: 0.8,
-    metalness: 0.2,
-  }),
-  wallSelected: new THREE.MeshStandardMaterial({ 
-    color: 0xe1f5fe,
-    roughness: 0.8,
-    metalness: 0.2, 
-  }),
   // Полы
   floor: new THREE.MeshStandardMaterial({ 
     color: 0xd7ccc8, 
@@ -87,6 +76,81 @@ const materials = {
     color: 0x7cb342, 
     roughness: 1,
     metalness: 0
+  }),
+  wall: new THREE.MeshStandardMaterial({ 
+    color: 0xf5f5f5, 
+    roughness: 0.8,
+    metalness: 0.2,
+  }),
+  wallSelected: new THREE.MeshStandardMaterial({ 
+    color: 0xe1f5fe,
+    roughness: 0.8,
+    metalness: 0.2, 
+  }),
+  // Материалы для пола
+  floorWood: new THREE.MeshStandardMaterial({ 
+    color: 0xCD9575, // Теплый дуб для гостиной
+    roughness: 0.9,
+    metalness: 0.1
+  }),
+  floorTile: new THREE.MeshStandardMaterial({ 
+    color: 0xE5E4E2, // Светлая плитка для кухни
+    roughness: 0.8,
+    metalness: 0.2
+  }),
+  floorCarpet: new THREE.MeshStandardMaterial({ 
+    color: 0xB6B6B4, // Мягкий ковер для спальни
+    roughness: 0.95,
+    metalness: 0.05
+  }),
+  
+  // Материалы для мебели
+  sofa: new THREE.MeshStandardMaterial({ 
+    color: 0x6082B6, // Синий диван
+    roughness: 0.8,
+    metalness: 0.1
+  }),
+  wood: new THREE.MeshStandardMaterial({ 
+    color: 0x8B4513, // Темное дерево
+    roughness: 0.7,
+    metalness: 0.2
+  }),
+  metallic: new THREE.MeshStandardMaterial({ 
+    color: 0xC0C0C0, // Серебристый металл
+    roughness: 0.3,
+    metalness: 0.8
+  }),
+  fabric: new THREE.MeshStandardMaterial({ 
+    color: 0xEDC9AF, // Мягкая ткань
+    roughness: 0.9,
+    metalness: 0.1
+  }),
+  kitchenCounter: new THREE.MeshStandardMaterial({ 
+    color: 0xF5F5F5, // Светлая столешница
+    roughness: 0.5,
+    metalness: 0.3
+  }),
+  bedding: new THREE.MeshStandardMaterial({ 
+    color: 0xE0FFFF, // Светло-голубое белье
+    roughness: 0.8,
+    metalness: 0.1
+  }),
+  carpet: new THREE.MeshStandardMaterial({
+    color: 0xBC8F8F, // Розовато-коричневый ковер
+    roughness: 0.95,
+    metalness: 0.05
+  }),
+  tv: new THREE.MeshStandardMaterial({
+    color: 0x000000, // Черный экран телевизора
+    roughness: 0.1,
+    metalness: 0.6,
+    emissive: 0x333333, // Легкое свечение
+    emissiveIntensity: 0.2
+  }),
+  fridge: new THREE.MeshStandardMaterial({
+    color: 0xFFFFFF, // Белый холодильник
+    roughness: 0.3,
+    metalness: 0.7
   })
 };
 
@@ -180,8 +244,8 @@ const onMouseClick = (event: MouseEvent) => {
         
         // Отправляем уведомление
         const actionText = device.isOn ? 'включен' : 'выключен';
-        notificationStore.addInfo(`Свет "${device.name}" ${actionText}`);
-      }
+        notificationStore.addInfo(`${device.name} ${actionText}`);      }
+        
     } else if (userData.type === 'fan') {
       // Toggle fan
       const device = houseStore.getDeviceById(userData.deviceId);
@@ -190,8 +254,8 @@ const onMouseClick = (event: MouseEvent) => {
         
         // Отправляем уведомление
         const actionText = device.isOn ? 'включен' : 'выключен';
-        notificationStore.addInfo(`Вентилятор "${device.name}" ${actionText}`);
-      }
+        notificationStore.addInfo(`${device.name} ${actionText}`);      }
+
     } else if (userData.type === 'room') {
       // Select room - highlight walls
       const room = houseStore.getRoomById(userData.roomId);
@@ -557,14 +621,14 @@ const createRoom = (
 ) => {
   if (!room) return;
   
-  // Создаем группу для комнаты
+  // Создаем группу для комнаты (существующий код)
   const roomGroup = new THREE.Group();
   roomGroup.position.copy(position);
   roomGroup.userData = { roomId: room.id, type: 'room' };
   houseGroup.add(roomGroup);
   roomMeshes.set(room.id, roomGroup);
   
-  // Определяем цвет комнаты в зависимости от типа
+  // Определяем цвет комнаты в зависимости от типа (существующий код)
   const roomColor = roomColors[room.type as keyof typeof roomColors] || roomColors.default;
   const wallMaterial = new THREE.MeshStandardMaterial({
     color: roomColor,
@@ -572,16 +636,35 @@ const createRoom = (
     metalness: 0.2
   });
   
-  // Создаем массив стен комнаты
+  // Создаем массив стен комнаты (существующий код)
   const walls: THREE.Mesh[] = [];
   
-  // Создаем пол
-  const floorGeometry = new THREE.BoxGeometry(size.x, 0.1, size.z);
-  const floor = new THREE.Mesh(floorGeometry, materials.floor);
-  floor.position.y = -size.y / 2;
-  floor.receiveShadow = true;
-  roomGroup.add(floor);
-  roomFloors.set(room.id, floor);
+  // Выбираем материал пола в зависимости от типа комнаты
+ 
+let floorMaterial;
+switch(room.type) {
+  case 'living':
+    floorMaterial = materials.floorWood;
+    break;
+  case 'kitchen':
+    floorMaterial = materials.floorTile;
+    break;
+  case 'bedroom':
+    floorMaterial = materials.floorCarpet;
+    break;
+  default:
+    floorMaterial = materials.floor;
+
+    addCarpet(roomGroup, size, room.type);
+}
+
+// Создаем пол
+const floorGeometry = new THREE.BoxGeometry(size.x, 0.1, size.z);
+const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+floor.position.y = -size.y / 2;
+floor.receiveShadow = true;
+roomGroup.add(floor);
+roomFloors.set(room.id, floor);
   
   // Helper function to create a wall
   const createWall = (width: number, height: number, depth: number, posX: number, posY: number, posZ: number, rotY: number = 0) => {
@@ -621,15 +704,30 @@ const createRoom = (
   // Добавляем стены в список для комнаты
   roomWalls.set(room.id, walls);
   
-  // Добавляем двери
+  // Добавляем двери и окна
   doors.forEach(door => {
     createDoor(roomGroup, door, size, wallThickness);
   });
   
-  // Добавляем окна
   windows.forEach(window => {
     createWindow(roomGroup, window, size, wallThickness);
   });
+  
+  // Добавляем интерьер в зависимости от типа комнаты
+  switch(room.type) {
+    case 'living':
+      addLivingRoomFurniture(roomGroup, size);
+      break;
+    case 'bedroom':
+      addBedroomFurniture(roomGroup, size);
+      break;
+    case 'kitchen':
+      addKitchenFurniture(roomGroup, size);
+      break;
+  }
+  
+  // Добавляем ковер в зависимости от типа комнаты
+  addCarpet(roomGroup, size, room.type);
   
   // Добавляем устройства в комнату
   if (room.devices) {
@@ -662,6 +760,550 @@ const createRoom = (
       }
     });
   }
+};
+
+const addCarpet = (roomGroup: THREE.Group, size: THREE.Vector3, roomType: string) => {
+  let carpetWidth, carpetLength, carpetColor;
+  
+  // Настройки ковра в зависимости от типа комнаты
+  switch(roomType) {
+    case 'living':
+      carpetWidth = size.x * 0.7;
+      carpetLength = size.z * 0.6;
+      carpetColor = 0x8F8F8F; // Серый ковер для гостиной
+      break;
+    case 'bedroom':
+      carpetWidth = size.x * 0.5;
+      carpetLength = size.z * 0.5;
+      carpetColor = 0xBC8F8F; // Розовато-коричневый для спальни
+      break;
+    case 'kitchen':
+      carpetWidth = size.x * 0.4;
+      carpetLength = size.z * 0.3;
+      carpetColor = 0x6B8E23; // Оливковый для кухни
+      break;
+    default:
+      carpetWidth = size.x * 0.6;
+      carpetLength = size.z * 0.6;
+      carpetColor = 0xA0A0A0; // Серый по умолчанию
+  }
+  
+  // Создаем ковер
+  const carpetGeometry = new THREE.BoxGeometry(carpetWidth, 0.03, carpetLength);
+  const carpetMaterial = new THREE.MeshStandardMaterial({
+    color: carpetColor,
+    roughness: 0.9,
+    metalness: 0.05
+  });
+  
+  const carpet = new THREE.Mesh(carpetGeometry, carpetMaterial);
+  
+  // Размещаем ковер чуть выше пола
+  carpet.position.y = -size.y / 2 + 0.05;
+  carpet.receiveShadow = true;
+  
+  roomGroup.add(carpet);
+};
+
+// Функция для добавления мебели в гостиную
+const addLivingRoomFurniture = (roomGroup: THREE.Group, size: THREE.Vector3) => {
+  const halfWidth = size.x / 2;
+  const halfDepth = size.z / 2;
+  const floorY = -size.y / 2;
+  
+  // Создаем диван
+  const sofaWidth = size.x * 0.5;
+  const sofaDepth = size.z * 0.2;
+  const sofaHeight = 0.7;
+  
+  const sofaGeometry = new THREE.BoxGeometry(sofaWidth, sofaHeight, sofaDepth);
+  const sofa = new THREE.Mesh(sofaGeometry, materials.sofa);
+  sofa.position.set(0, floorY + sofaHeight / 2, -halfDepth + sofaDepth / 2 + 0.3);
+  sofa.castShadow = true;
+  sofa.receiveShadow = true;
+  roomGroup.add(sofa);
+  
+  // Добавляем подушки на диван
+  const cushionSize = 0.2;
+  const cushionGeometry = new THREE.BoxGeometry(cushionSize, cushionSize, cushionSize);
+  const cushionMaterial = new THREE.MeshStandardMaterial({
+    color: 0x4682B4, // Более темный синий для подушек
+    roughness: 0.9,
+    metalness: 0.05
+  });
+  
+  // Левая подушка
+  const leftCushion = new THREE.Mesh(cushionGeometry, cushionMaterial);
+  leftCushion.position.set(-sofaWidth / 4, floorY + sofaHeight + cushionSize / 2 - 0.1, -halfDepth + sofaDepth / 2 + 0.3);
+  leftCushion.castShadow = true;
+  roomGroup.add(leftCushion);
+  
+  // Правая подушка
+  const rightCushion = new THREE.Mesh(cushionGeometry, cushionMaterial);
+  rightCushion.position.set(sofaWidth / 4, floorY + sofaHeight + cushionSize / 2 - 0.1, -halfDepth + sofaDepth / 2 + 0.3);
+  rightCushion.castShadow = true;
+  roomGroup.add(rightCushion);
+  
+  // Создаем журнальный столик
+  const tableWidth = size.x * 0.3;
+  const tableDepth = size.z * 0.2;
+  const tableHeight = 0.4;
+  
+  const tableGeometry = new THREE.BoxGeometry(tableWidth, tableHeight, tableDepth);
+  const table = new THREE.Mesh(tableGeometry, materials.wood);
+  table.position.set(0, floorY + tableHeight / 2, 0);
+  table.castShadow = true;
+  table.receiveShadow = true;
+  roomGroup.add(table);
+  
+  // Телевизор
+  const tvWidth = size.x * 0.4;
+  const tvHeight = size.y * 0.3;
+  const tvDepth = 0.05;
+  
+  const tvStandHeight = 0.5;
+  const tvStandWidth = tvWidth * 0.5;
+  const tvStandDepth = 0.3;
+  
+  // Подставка для ТВ
+  const tvStandGeometry = new THREE.BoxGeometry(tvStandWidth, tvStandHeight, tvStandDepth);
+  const tvStand = new THREE.Mesh(tvStandGeometry, materials.wood);
+  tvStand.position.set(0, floorY + tvStandHeight / 2, halfDepth - tvStandDepth / 2 - 0.3);
+  tvStand.castShadow = true;
+  tvStand.receiveShadow = true;
+  roomGroup.add(tvStand);
+  
+  // Экран ТВ
+  const tvGeometry = new THREE.BoxGeometry(tvWidth, tvHeight, tvDepth);
+  const tv = new THREE.Mesh(tvGeometry, materials.tv);
+  tv.position.set(0, floorY + tvStandHeight + tvHeight / 2, halfDepth - tvDepth / 2 - 0.3);
+  tv.castShadow = true;
+  roomGroup.add(tv);
+  
+  // Добавляем настольную лампу на столик
+  const lampBaseRadius = 0.1;
+  const lampBaseHeight = 0.05;
+  const lampPoleHeight = 0.3;
+  const lampPoleRadius = 0.02;
+  const lampShadeRadius = 0.15;
+  const lampShadeHeight = 0.15;
+  
+  // База лампы
+  const lampBaseGeometry = new THREE.CylinderGeometry(lampBaseRadius, lampBaseRadius, lampBaseHeight, 16);
+  const lampBase = new THREE.Mesh(lampBaseGeometry, materials.metallic);
+  lampBase.position.set(tableWidth/3, floorY + tableHeight + lampBaseHeight/2, -tableDepth/3);
+  lampBase.castShadow = true;
+  roomGroup.add(lampBase);
+  
+  // Стойка лампы
+  const lampPoleGeometry = new THREE.CylinderGeometry(lampPoleRadius, lampPoleRadius, lampPoleHeight, 8);
+  const lampPole = new THREE.Mesh(lampPoleGeometry, materials.metallic);
+  lampPole.position.set(tableWidth/3, floorY + tableHeight + lampBaseHeight + lampPoleHeight/2, -tableDepth/3);
+  lampPole.castShadow = true;
+  roomGroup.add(lampPole);
+  
+  // Абажур лампы
+  const lampShadeGeometry = new THREE.ConeGeometry(lampShadeRadius, lampShadeHeight, 16, 1, true);
+  const lampShadeMaterial = new THREE.MeshStandardMaterial({ 
+    color: 0xFAF0E6, 
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.8
+  });
+  const lampShade = new THREE.Mesh(lampShadeGeometry, lampShadeMaterial);
+  lampShade.position.set(tableWidth/3, floorY + tableHeight + lampBaseHeight + lampPoleHeight + lampShadeHeight/2, -tableDepth/3);
+  lampShade.castShadow = true;
+  roomGroup.add(lampShade);
+  
+  // Свет от лампы
+  const lampLight = new THREE.PointLight(0xffffcc, 0.3, 3);
+  lampLight.position.set(tableWidth/3, floorY + tableHeight + lampBaseHeight + lampPoleHeight, -tableDepth/3);
+  roomGroup.add(lampLight);
+};
+
+// Функция для добавления мебели в спальню
+const addBedroomFurniture = (roomGroup: THREE.Group, size: THREE.Vector3) => {
+  const halfWidth = size.x / 2;
+  const halfDepth = size.z / 2;
+  const floorY = -size.y / 2;
+  
+  // Создаем кровать
+  const bedWidth = size.x * 0.6;
+  const bedLength = size.z * 0.5;
+  const bedHeight = 0.3;
+  const mattressHeight = 0.1;
+  
+  // Каркас кровати
+  const bedFrameGeometry = new THREE.BoxGeometry(bedWidth, bedHeight, bedLength);
+  const bedFrame = new THREE.Mesh(bedFrameGeometry, materials.wood);
+  bedFrame.position.set(0, floorY + bedHeight / 2, 0);
+  bedFrame.castShadow = true;
+  bedFrame.receiveShadow = true;
+  roomGroup.add(bedFrame);
+  
+  // Матрас
+  const mattressGeometry = new THREE.BoxGeometry(bedWidth * 0.95, mattressHeight, bedLength * 0.9);
+  const mattressMaterial = new THREE.MeshStandardMaterial({
+    color: 0xFFFFFF,
+    roughness: 0.9,
+    metalness: 0.05
+  });
+  const mattress = new THREE.Mesh(mattressGeometry, mattressMaterial);
+  mattress.position.set(0, floorY + bedHeight + mattressHeight / 2, 0);
+  mattress.castShadow = true;
+  roomGroup.add(mattress);
+  
+  // Подушки
+  const pillowWidth = bedWidth * 0.2;
+  const pillowLength = bedLength * 0.2;
+  const pillowHeight = 0.1;
+  const pillowGeometry = new THREE.BoxGeometry(pillowWidth, pillowHeight, pillowLength);
+  
+  // Левая подушка
+  const leftPillow = new THREE.Mesh(pillowGeometry, materials.bedding);
+  leftPillow.position.set(-bedWidth * 0.25, floorY + bedHeight + mattressHeight + pillowHeight / 2, -bedLength * 0.3);
+  leftPillow.castShadow = true;
+  roomGroup.add(leftPillow);
+  
+  // Правая подушка
+  const rightPillow = new THREE.Mesh(pillowGeometry, materials.bedding);
+  rightPillow.position.set(bedWidth * 0.25, floorY + bedHeight + mattressHeight + pillowHeight / 2, -bedLength * 0.3);
+  rightPillow.castShadow = true;
+  roomGroup.add(rightPillow);
+  
+  // Одеяло
+  const blanketGeometry = new THREE.BoxGeometry(bedWidth * 0.9, 0.05, bedLength * 0.6);
+  const blanketMaterial = new THREE.MeshStandardMaterial({
+    color: 0xADD8E6, // Светло-голубое одеяло
+    roughness: 0.9,
+    metalness: 0.1
+  });
+  const blanket = new THREE.Mesh(blanketGeometry, blanketMaterial);
+  blanket.position.set(0, floorY + bedHeight + mattressHeight + 0.05, bedLength * 0.1);
+  blanket.castShadow = true;
+  roomGroup.add(blanket);
+  
+  // Тумбочки
+  const nightstandWidth = size.x * 0.15;
+  const nightstandDepth = size.z * 0.15;
+  const nightstandHeight = 0.5;
+  
+  // Левая тумбочка
+  const leftNightstandGeometry = new THREE.BoxGeometry(nightstandWidth, nightstandHeight, nightstandDepth);
+  const leftNightstand = new THREE.Mesh(leftNightstandGeometry, materials.wood);
+  leftNightstand.position.set(-bedWidth / 2 - nightstandWidth / 2 - 0.1, floorY + nightstandHeight / 2, -bedLength / 4);
+  leftNightstand.castShadow = true;
+  leftNightstand.receiveShadow = true;
+  roomGroup.add(leftNightstand);
+  
+  // Правая тумбочка
+  const rightNightstand = leftNightstand.clone();
+  rightNightstand.position.set(bedWidth / 2 + nightstandWidth / 2 + 0.1, floorY + nightstandHeight / 2, -bedLength / 4);
+  roomGroup.add(rightNightstand);
+  
+  // Настольные лампы
+  const lampHeight = 0.3;
+  const lampBaseRadius = 0.08;
+  const lampShadeRadius = 0.12;
+  
+  // Левая лампа
+  const leftLampBaseGeometry = new THREE.CylinderGeometry(lampBaseRadius, lampBaseRadius, 0.05, 16);
+  const leftLampBase = new THREE.Mesh(leftLampBaseGeometry, materials.metallic);
+  leftLampBase.position.set(-bedWidth / 2 - nightstandWidth / 2 - 0.1, floorY + nightstandHeight + 0.025, -bedLength / 4);
+  leftLampBase.castShadow = true;
+  roomGroup.add(leftLampBase);
+  
+  const leftLampShadeGeometry = new THREE.CylinderGeometry(lampShadeRadius, lampShadeRadius, lampHeight, 16);
+  const leftLampShadeMaterial = new THREE.MeshStandardMaterial({
+    color: 0xF5F5DC, // Бежевый абажур
+    transparent: true,
+    opacity: 0.8
+  });
+  const leftLampShade = new THREE.Mesh(leftLampShadeGeometry, leftLampShadeMaterial);
+  leftLampShade.position.set(-bedWidth / 2 - nightstandWidth / 2 - 0.1, floorY + nightstandHeight + lampHeight / 2 + 0.05, -bedLength / 4);
+  leftLampShade.castShadow = true;
+  roomGroup.add(leftLampShade);
+  
+  // Правая лампа (клон левой)
+  const rightLampBase = leftLampBase.clone();
+  rightLampBase.position.set(bedWidth / 2 + nightstandWidth / 2 + 0.1, floorY + nightstandHeight + 0.025, -bedLength / 4);
+  roomGroup.add(rightLampBase);
+  
+  const rightLampShade = leftLampShade.clone();
+  rightLampShade.position.set(bedWidth / 2 + nightstandWidth / 2 + 0.1, floorY + nightstandHeight + lampHeight / 2 + 0.05, -bedLength / 4);
+  roomGroup.add(rightLampShade);
+  
+  // Шкаф
+  const wardrobeWidth = size.x * 0.25;
+  const wardrobeDepth = size.z * 0.2;
+  const wardrobeHeight = size.y * 0.8;
+  
+  const wardrobeGeometry = new THREE.BoxGeometry(wardrobeWidth, wardrobeHeight, wardrobeDepth);
+  const wardrobe = new THREE.Mesh(wardrobeGeometry, materials.wood);
+  wardrobe.position.set(-halfWidth + wardrobeWidth / 2 + 0.2, floorY + wardrobeHeight / 2, halfDepth - wardrobeDepth / 2 - 0.2);
+  wardrobe.castShadow = true;
+  wardrobe.receiveShadow = true;
+  roomGroup.add(wardrobe);
+  
+  // Зеркало
+  const mirrorWidth = size.x * 0.2;
+  const mirrorHeight = size.y * 0.5;
+  const mirrorDepth = 0.05;
+  
+  const mirrorGeometry = new THREE.BoxGeometry(mirrorWidth, mirrorHeight, mirrorDepth);
+  const mirrorMaterial = new THREE.MeshStandardMaterial({
+    color: 0xEEEEEE,
+    roughness: 0.1,
+    metalness: 0.9,
+    envMapIntensity: 1
+  });
+  const mirror = new THREE.Mesh(mirrorGeometry, mirrorMaterial);
+  mirror.position.set(halfWidth - mirrorWidth / 2 - 0.2, floorY + mirrorHeight / 2 + 0.5, halfDepth - mirrorDepth / 2 - 0.1);
+  mirror.castShadow = true;
+  roomGroup.add(mirror);
+};
+
+// Функция для добавления мебели на кухню
+const addKitchenFurniture = (roomGroup: THREE.Group, size: THREE.Vector3) => {
+  const halfWidth = size.x / 2;
+  const halfDepth = size.z / 2;
+  const floorY = -size.y / 2;
+  
+  // Кухонные шкафы (нижние)
+  const cabinetWidth = size.x * 0.8;
+  const cabinetDepth = size.z * 0.2;
+  const cabinetHeight = 0.8;
+  
+  const cabinetGeometry = new THREE.BoxGeometry(cabinetWidth, cabinetHeight, cabinetDepth);
+  const cabinet = new THREE.Mesh(cabinetGeometry, materials.wood);
+  cabinet.position.set(0, floorY + cabinetHeight / 2, -halfDepth + cabinetDepth / 2 + 0.1);
+  cabinet.castShadow = true;
+  cabinet.receiveShadow = true;
+  roomGroup.add(cabinet);
+  
+  // Столешница
+  const countertopGeometry = new THREE.BoxGeometry(cabinetWidth + 0.1, 0.05, cabinetDepth + 0.1);
+  const countertop = new THREE.Mesh(countertopGeometry, materials.kitchenCounter);
+  countertop.position.set(0, floorY + cabinetHeight + 0.025, -halfDepth + cabinetDepth / 2 + 0.1);
+  countertop.receiveShadow = true;
+  roomGroup.add(countertop);
+  
+  // Раковина
+  const sinkWidth = cabinetWidth * 0.3;
+  const sinkDepth = cabinetDepth * 0.6;
+  const sinkHeight = 0.1;
+  
+  const sinkGeometry = new THREE.BoxGeometry(sinkWidth, sinkHeight, sinkDepth);
+  const sinkMaterial = new THREE.MeshStandardMaterial({
+    color: 0xC0C0C0,
+    roughness: 0.2,
+    metalness: 0.8
+  });
+  const sink = new THREE.Mesh(sinkGeometry, sinkMaterial);
+  sink.position.set(-cabinetWidth / 4, floorY + cabinetHeight + 0.025, -halfDepth + cabinetDepth / 2 + 0.1);
+  sink.receiveShadow = true;
+  roomGroup.add(sink);
+  
+  // Кран
+  const faucetHeight = 0.2;
+  const faucetRadius = 0.02;
+  
+  const faucetBaseGeometry = new THREE.CylinderGeometry(faucetRadius, faucetRadius, faucetHeight, 8);
+  const faucet = new THREE.Mesh(faucetBaseGeometry, materials.metallic);
+  faucet.position.set(-cabinetWidth / 4, floorY + cabinetHeight + faucetHeight / 2 + 0.05, -halfDepth + cabinetDepth / 2 + 0.05);
+  faucet.castShadow = true;
+  roomGroup.add(faucet);
+  
+  // Плита
+  const stoveWidth = cabinetWidth * 0.3;
+  const stoveDepth = cabinetDepth * 0.8;
+  const stoveHeight = 0.05;
+  
+  const stoveGeometry = new THREE.BoxGeometry(stoveWidth, stoveHeight, stoveDepth);
+  const stoveMaterial = new THREE.MeshStandardMaterial({
+    color: 0x000000,
+    roughness: 0.7,
+    metalness: 0.3
+  });
+  const stove = new THREE.Mesh(stoveGeometry, stoveMaterial);
+  stove.position.set(cabinetWidth / 4, floorY + cabinetHeight + stoveHeight / 2, -halfDepth + cabinetDepth / 2 + 0.1);
+  stove.receiveShadow = true;
+  roomGroup.add(stove);
+  
+  // Конфорки
+  const burnerRadius = 0.05;
+  const burnerHeight = 0.01;
+  const burnerGeometry = new THREE.CylinderGeometry(burnerRadius, burnerRadius, burnerHeight, 16);
+  const burnerMaterial = new THREE.MeshStandardMaterial({
+    color: 0x333333,
+    roughness: 0.8,
+    metalness: 0.5
+  });
+  
+  // Левая конфорка
+  const leftBurner = new THREE.Mesh(burnerGeometry, burnerMaterial);
+  leftBurner.position.set(cabinetWidth / 4 - stoveWidth / 4, floorY + cabinetHeight + stoveHeight + burnerHeight / 2, -halfDepth + cabinetDepth / 2 - stoveDepth / 4);
+  roomGroup.add(leftBurner);
+  
+  // Правая конфорка
+  const rightBurner = new THREE.Mesh(burnerGeometry, burnerMaterial);
+  rightBurner.position.set(cabinetWidth / 4 + stoveWidth / 4, floorY + cabinetHeight + stoveHeight + burnerHeight / 2, -halfDepth + cabinetDepth / 2 - stoveDepth / 4);
+  roomGroup.add(rightBurner);
+  
+  // Нижняя левая конфорка
+  const bottomLeftBurner = new THREE.Mesh(burnerGeometry, burnerMaterial);
+  bottomLeftBurner.position.set(cabinetWidth / 4 - stoveWidth / 4, floorY + cabinetHeight + stoveHeight + burnerHeight / 2, -halfDepth + cabinetDepth / 2 + stoveDepth / 4);
+  roomGroup.add(bottomLeftBurner);
+  
+  // Нижняя правая конфорка
+  const bottomRightBurner = new THREE.Mesh(burnerGeometry, burnerMaterial);
+  bottomRightBurner.position.set(cabinetWidth / 4 + stoveWidth / 4, floorY + cabinetHeight + stoveHeight + burnerHeight / 2, -halfDepth + cabinetDepth / 2 + stoveDepth / 4);
+  roomGroup.add(bottomRightBurner);
+  
+  // Верхние шкафы
+  const upperCabinetHeight = 0.6;
+  const upperCabinetGeometry = new THREE.BoxGeometry(cabinetWidth, upperCabinetHeight, cabinetDepth * 0.7);
+  const upperCabinet = new THREE.Mesh(upperCabinetGeometry, materials.wood);
+  upperCabinet.position.set(0, floorY + size.y - upperCabinetHeight / 2 - 0.2, -halfDepth + cabinetDepth / 2 * 0.7 + 0.1);
+  upperCabinet.castShadow = true;
+  roomGroup.add(upperCabinet);
+  
+  // Холодильник
+  const fridgeWidth = size.x * 0.15;
+  const fridgeDepth = size.z * 0.2;
+  const fridgeHeight = size.y * 0.8;
+  
+  const fridgeGeometry = new THREE.BoxGeometry(fridgeWidth, fridgeHeight, fridgeDepth);
+  const fridge = new THREE.Mesh(fridgeGeometry, materials.fridge);
+  fridge.position.set(halfWidth - fridgeWidth / 2 - 0.2, floorY + fridgeHeight / 2, -halfDepth + fridgeDepth / 2 + 0.1);
+  fridge.castShadow = true;
+  fridge.receiveShadow = true;
+  roomGroup.add(fridge);
+  
+  // Ручка холодильника
+  const handleWidth = 0.02;
+  const handleHeight = 0.2;
+  const handleDepth = 0.05;
+  
+  const handleGeometry = new THREE.BoxGeometry(handleWidth, handleHeight, handleDepth);
+  const handle = new THREE.Mesh(handleGeometry, materials.metallic);
+  handle.position.set(halfWidth - fridgeWidth - 0.2 + 0.05, floorY + fridgeHeight / 2, -halfDepth + fridgeDepth / 2 + 0.1 + fridgeDepth / 2 + handleDepth / 2);
+  handle.castShadow = true;
+  roomGroup.add(handle);
+  
+  // Обеденный стол
+  const tableWidth = size.x * 0.4;
+  const tableLength = size.z * 0.3;
+  const tableHeight = 0.75;
+  
+  const tableGeometry = new THREE.BoxGeometry(tableWidth, 0.05, tableLength);
+  const table = new THREE.Mesh(tableGeometry, materials.wood);
+  table.position.set(0, floorY + tableHeight, halfDepth - tableLength / 2 - 0.5);
+  table.castShadow = true;
+  table.receiveShadow = true;
+  roomGroup.add(table);
+  
+  // Ножки стола
+  const legRadius = 0.03;
+  const legHeight = tableHeight;
+  const legGeometry = new THREE.CylinderGeometry(legRadius, legRadius, legHeight, 8);
+  
+  // Передняя левая ножка
+  const frontLeftLeg = new THREE.Mesh(legGeometry, materials.wood);
+  frontLeftLeg.position.set(-tableWidth / 2 + legRadius, floorY + legHeight / 2, halfDepth - tableLength + legRadius - 0.5);
+  frontLeftLeg.castShadow = true;
+  roomGroup.add(frontLeftLeg);
+  
+  // Передняя правая ножка
+  const frontRightLeg = new THREE.Mesh(legGeometry, materials.wood);
+  frontRightLeg.position.set(tableWidth / 2 - legRadius, floorY + legHeight / 2, halfDepth - tableLength + legRadius - 0.5);
+  frontRightLeg.castShadow = true;
+  roomGroup.add(frontRightLeg);
+  
+  // Задняя левая ножка
+  const backLeftLeg = new THREE.Mesh(legGeometry, materials.wood);
+  backLeftLeg.position.set(-tableWidth / 2 + legRadius, floorY + legHeight / 2, halfDepth - legRadius - 0.5);
+  backLeftLeg.castShadow = true;
+  roomGroup.add(backLeftLeg);
+  
+  // Задняя правая ножка
+  const backRightLeg = new THREE.Mesh(legGeometry, materials.wood);
+  backRightLeg.position.set(tableWidth / 2 - legRadius, floorY + legHeight / 2, halfDepth - legRadius - 0.5);
+  backRightLeg.castShadow = true;
+  roomGroup.add(backRightLeg);
+  
+  // Создаем стулья
+  const chairWidth = 0.4;
+  const chairDepth = 0.4;
+  const chairSeatHeight = 0.45;
+  const chairBackHeight = 0.4;
+  
+  // Функция для создания стула
+  const createChair = (x: number, z: number) => {
+    // Группа для стула
+    const chairGroup = new THREE.Group();
+    chairGroup.position.set(x, floorY, z);
+    
+    // Сиденье
+    const seatGeometry = new THREE.BoxGeometry(chairWidth, 0.05, chairDepth);
+    const seat = new THREE.Mesh(seatGeometry, materials.wood);
+    seat.position.set(0, chairSeatHeight, 0);
+    seat.castShadow = true;
+    seat.receiveShadow = true;
+    chairGroup.add(seat);
+    
+    // Спинка
+    const backGeometry = new THREE.BoxGeometry(chairWidth, chairBackHeight, 0.05);
+    const back = new THREE.Mesh(backGeometry, materials.wood);
+    back.position.set(0, chairSeatHeight + chairBackHeight / 2, -chairDepth / 2 + 0.025);
+    back.castShadow = true;
+    chairGroup.add(back);
+    
+    // Ножки
+    const legRadius = 0.02;
+    const legGeometry = new THREE.CylinderGeometry(legRadius, legRadius, chairSeatHeight, 8);
+    
+    // Передняя левая ножка
+    const frontLeftLeg = new THREE.Mesh(legGeometry, materials.wood);
+    frontLeftLeg.position.set(-chairWidth / 2 + legRadius, chairSeatHeight / 2, chairDepth / 2 - legRadius);
+    frontLeftLeg.castShadow = true;
+    chairGroup.add(frontLeftLeg);
+    
+    // Передняя правая ножка
+    const frontRightLeg = new THREE.Mesh(legGeometry, materials.wood);
+    frontRightLeg.position.set(chairWidth / 2 - legRadius, chairSeatHeight / 2, chairDepth / 2 - legRadius);
+    frontRightLeg.castShadow = true;
+    chairGroup.add(frontRightLeg);
+    
+    // Задняя левая ножка
+    const backLeftLeg = new THREE.Mesh(legGeometry, materials.wood);
+    backLeftLeg.position.set(-chairWidth / 2 + legRadius, chairSeatHeight / 2, -chairDepth / 2 + legRadius);
+    backLeftLeg.castShadow = true;
+    chairGroup.add(backLeftLeg);
+    
+    // Задняя правая ножка
+    const backRightLeg = new THREE.Mesh(legGeometry, materials.wood);
+    backRightLeg.position.set(chairWidth / 2 - legRadius, chairSeatHeight / 2, -chairDepth / 2 + legRadius);
+    backRightLeg.castShadow = true;
+    chairGroup.add(backRightLeg);
+    
+    return chairGroup;
+  };
+  
+  // Создаем 4 стула вокруг стола
+  const chair1 = createChair(-tableWidth / 4, halfDepth - tableLength - 0.3 - 0.5);
+  roomGroup.add(chair1);
+  
+  const chair2 = createChair(tableWidth / 4, halfDepth - tableLength - 0.3 - 0.5);
+  roomGroup.add(chair2);
+  
+  const chair3 = createChair(-tableWidth / 4, halfDepth - 0.3 - 0.5);
+  chair3.rotation.y = Math.PI;
+  roomGroup.add(chair3);
+  
+  const chair4 = createChair(tableWidth / 4, halfDepth - 0.3 - 0.5);
+  chair4.rotation.y = Math.PI;
+  roomGroup.add(chair4);
 };
 
 // Создание двери
