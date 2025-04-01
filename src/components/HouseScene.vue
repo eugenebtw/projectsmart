@@ -36,9 +36,8 @@ import { useHouseStore } from '../stores/house';
 import { useNotificationStore, NotificationType } from '../stores/notification';
 import * as TWEEN from '@tweenjs/tween.js';
 
-// НОВЫЕ ГЛОБАЛЬНЫЕ ПАРАМЕТРЫ ДЛЯ УЛУЧШЕНИЯ ОТОБРАЖЕНИЯ МЕБЕЛИ
-const FURNITURE_SCALE = 1.2;       // Увеличить мебель в 1.2 раза вместо 3.0
-const USE_BRIGHT_COLORS = true;    // Использовать яркие контрастные цвета для мебели
+const FURNITURE_SCALE = 1.2;       
+const USE_BRIGHT_COLORS = true;    
 
 // DEBUG Объект для отладки c TypeScript объявлениями
 const DEBUG = {
