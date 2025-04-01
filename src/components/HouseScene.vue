@@ -1945,7 +1945,6 @@ const createThermostat = (
   
   // Thermostat screen - яркий и заметный для отладки
   const screenGeometry = new THREE.PlaneGeometry(0.1, 0.1);
-  // ИСПРАВЛЕНО: MeshBasicMaterial заменен на MeshStandardMaterial
   const screenMaterial = new THREE.MeshStandardMaterial({ 
     color: USE_BRIGHT_COLORS ? 0x4CAF50 : 0x0d47a1,
     emissive: USE_BRIGHT_COLORS ? 0x4CAF50 : 0x0d47a1,
