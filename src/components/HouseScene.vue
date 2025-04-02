@@ -1993,114 +1993,139 @@ const createThermostat = (
 
 // Mouse click handler
 const onMouseClick = (event: MouseEvent) => {
-  if (!sceneContainer.value) return;
-  
-  // Calculate mouse position in normalized device coordinates
-  const rect = sceneContainer.value.getBoundingClientRect();
-  mouse.x = ((event.clientX - rect.left) / sceneContainer.value.clientWidth) * 2 - 1;
-  mouse.y = -((event.clientY - rect.top) / sceneContainer.value.clientHeight) * 2 + 1;
-  
-  // Update picking ray with camera and mouse position
-  raycaster.setFromCamera(mouse, camera);
-  
-  // Calculate objects intersecting the ray
-  const intersects = raycaster.intersectObjects(scene.children, true);
-  
-  if (intersects.length > 0) {
-    // Find first object with userData
-    let currentObj: THREE.Object3D | null = intersects[0].object;
-    let userData: any = null;
+    if (!sceneContainer.value) return;
     
-    // Traverse up hierarchy to find object with userData
-    while (currentObj && !userData) {
-      if (currentObj.userData && (currentObj.userData.deviceId || currentObj.userData.roomId)) {
-        userData = currentObj.userData;
-        break;
-      }
-      currentObj = currentObj.parent;
-    }
+    // Calculate mouse position in normalized device coordinates
+    const rect = sceneContainer.value.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / sceneContainer.value.clientWidth) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / sceneContainer.value.clientHeight) * 2 + 1;
     
-    if (!userData) return;
+    // Update picking ray with camera and mouse position
+    raycaster.setFromCamera(mouse, camera);
     
-    // Handle based on object type
-    if (userData.type === 'light') {
-      // Toggle light
-      const device = houseStore.getDeviceById(userData.deviceId);
-      if (device) {
-        houseStore.toggleDevice(userData.deviceId);
+    // Get all intersected objects, including those behind the roof
+    const intersects = raycaster.intersectObjects(scene.children, true);
+    
+    // Define a list of roof objects to filter them out for interaction
+    const roofObjects: THREE.Object3D[] = [];
+    scene.traverse((obj) => {
+        if (obj.userData && obj.userData.type === 'roof') {
+            roofObjects.push(obj);
+        }
+    });
+    
+    // Filter out roof objects from intersections
+    const nonRoofIntersects = intersects.filter(intersect => {
+        // Check the object and all its parents to ensure it's not a roof
+        let currentObj = intersect.object;
+        while (currentObj) {
+            if (currentObj.userData && currentObj.userData.type === 'roof') {
+                return false;
+            }
+            currentObj = currentObj.parent!;
+        }
+        return true;
+    });
+    
+    // Process the first non-roof intersection
+    if (nonRoofIntersects.length > 0) {
+        // Find first object with userData
+        let currentObj: THREE.Object3D | null = nonRoofIntersects[0].object;
+        let userData: any = null;
+        
+        // Traverse up hierarchy to find object with userData
+        while (currentObj && !userData) {
+            if (currentObj.userData && (currentObj.userData.deviceId || currentObj.userData.roomId)) {
+                userData = currentObj.userData;
+                break;
+            }
+            currentObj = currentObj.parent;
+        }
+        
+        if (!userData) return;
+        
+        // Handle based on object type
+        if (userData.type === 'light') {
+            // Toggle light
+            const device = houseStore.getDeviceById(userData.deviceId);
+            if (device) {
+                houseStore.toggleDevice(userData.deviceId);
 
-        // Update light point
-        const lightObject = roomDevices.get(userData.deviceId);
-        if (lightObject) {
-          // Update bulb color
-          if (lightObject instanceof THREE.Group) {
-            // Find bulb in group
-            lightObject.children.forEach(child => {
-              if (child.name === 'bulb') {
-                const bulbMaterial = new THREE.MeshStandardMaterial({
-                  color: device.isOn ? 0xffff00 : 0x888888,
-                  emissive: device.isOn ? 0xffff00 : 0x000000,
-                  emissiveIntensity: device.isOn ? 0.5 : 0
+                // Update light point
+                const lightObject = roomDevices.get(userData.deviceId);
+                if (lightObject) {
+                    // Update bulb color
+                    if (lightObject instanceof THREE.Group) {
+                        // Find bulb in group
+                        lightObject.children.forEach(child => {
+                            if (child.name === 'bulb') {
+                                const bulbMaterial = new THREE.MeshStandardMaterial({
+                                    color: device.isOn ? 0xffff00 : 0x888888,
+                                    emissive: device.isOn ? 0xffff00 : 0x000000,
+                                    emissiveIntensity: device.isOn ? 0.5 : 0
+                                });
+                                (child as THREE.Mesh).material = bulbMaterial;
+                            }
+                        });
+                    }
+                    
+                    // Add or remove point light
+                    if (device.isOn) {
+                        if (!roomLights.has(device.id)) {
+                            const pointLight = new THREE.PointLight(0xffff99, 1, 10);
+                            pointLight.position.copy(lightObject.position);
+                            scene.add(pointLight);
+                            roomLights.set(device.id, pointLight);
+                        }
+                    } else {
+                        const light = roomLights.get(device.id);
+                        if (light) {
+                            scene.remove(light);
+                            roomLights.delete(device.id);
+                        }
+                    }
+                }
+                
+                // Send notification
+                const actionText = device.isOn ? 'включен' : 'выключен';
+                notificationStore.addInfo(`${device.name} ${actionText}`);
+            }
+                
+        } else if (userData.type === 'fan') {
+            // Toggle fan
+            const device = houseStore.getDeviceById(userData.deviceId);
+            if (device) {
+                houseStore.toggleDevice(userData.deviceId);
+                
+                // Send notification
+                const actionText = device.isOn ? 'включен' : 'выключен';
+                notificationStore.addInfo(`${device.name} ${actionText}`);
+            }
+
+        } else if (userData.type === 'room') {
+            // Select room - highlight walls
+            const room = houseStore.getRoomById(userData.roomId);
+            if (room) {
+                // Remove highlight from all rooms
+                roomWalls.forEach((walls, roomId) => {
+                    walls.forEach(wall => {
+                        wall.material = materials.wall;
+                    });
                 });
-                (child as THREE.Mesh).material = bulbMaterial;
-              }
-            });
-          }
-          
-          // Add or remove point light
-          if (device.isOn) {
-            if (!roomLights.has(device.id)) {
-              const pointLight = new THREE.PointLight(0xffff99, 1, 10);
-              pointLight.position.copy(lightObject.position);
-              scene.add(pointLight);
-              roomLights.set(device.id, pointLight);
+                
+                // Highlight selected room
+                const walls = roomWalls.get(userData.roomId);
+                if (walls) {
+                    walls.forEach(wall => {
+                        wall.material = materials.wallSelected;
+                    });
+                }
+                
+                // Send notification
+                notificationStore.addInfo(`Выбрана комната: ${room.name}`);
             }
-          } else {
-            const light = roomLights.get(device.id);
-            if (light) {
-              scene.remove(light);
-              roomLights.delete(device.id);
-            }
-          }
         }
-        
-        // Send notification
-        const actionText = device.isOn ? 'включен' : 'выключен';
-        notificationStore.addInfo(`${device.name} ${actionText}`);
-      }
-        
-    } else if (userData.type === 'fan') {
-      // Toggle fan
-      const device = houseStore.getDeviceById(userData.deviceId);
-      if (device) {
-        houseStore.toggleDevice(userData.deviceId);
-        
-        // Send notification
-        const actionText = device.isOn ? 'включен' : 'выключен';
-        notificationStore.addInfo(`${device.name} ${actionText}`);
-      }
-
-    } else if (userData.type === 'room') {
-      // Select room - highlight walls
-      const room = houseStore.getRoomById(userData.roomId);
-      if (room) {
-        // Remove highlight from all rooms
-        roomWalls.forEach((walls, roomId) => {
-          walls.forEach(wall => {
-            wall.material = materials.wall;
-          });
-        });
-        
-        // Highlight selected room
-        const walls = roomWalls.get(userData.roomId);
-        if (walls) {
-          walls.forEach(wall => {
-            wall.material = materials.wallSelected;
-          });
-        }
-      }
     }
-  }
 };
 
 // Setup drag and drop
