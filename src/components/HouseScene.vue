@@ -2120,9 +2120,6 @@ const onMouseClick = (event: MouseEvent) => {
                         wall.material = materials.wallSelected;
                     });
                 }
-                
-                // Send notification
-                notificationStore.addInfo(`Выбрана комната: ${room.name}`);
             }
         }
     }
