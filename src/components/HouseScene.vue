@@ -744,86 +744,106 @@ const addTrees = () => {
     createRoof(houseGroup, calculatedWidth, calculatedDepth, houseCenterX, houseCenterZ); // Передаем центр
   };
 
-// --- Модифицированная функция createRoof ---
 // Добавляем offsetX и offsetZ для центрирования крыши над фактическим домом
 const createRoof = (houseGroup: THREE.Group, width: number, depth: number, offsetX: number = 0, offsetZ: number = 0) => {
-    const roofHeight = 4;  // height of roof from top of walls
-    const roofOverhang = 0.5; // Свес крыши
+    // Lower height for more compact appearance
+    const roofHeight = 2.5;
+    
+    // Calculate the exact wall height - assuming room height is 3 units and walls extend to half
+    const wallTopY = 1.5; // This is where walls end (relative to room center)
+    
+    // No overhang, align exactly with walls to avoid gaps
+    const roofWidth = width;
+    const roofDepth = depth;
+    
+    // Create double-sided transparent material for the roof
+    const roofMaterial = new THREE.MeshStandardMaterial({
+        color: 0x795548,
+        roughness: 0.7,
+        metalness: 0.3,
+        transparent: true,
+        opacity: 0.7,
+        side: THREE.DoubleSide // Make it visible from both sides
+    });
 
-    const roofWidth = width + roofOverhang * 2;
-    const roofDepth = depth + roofOverhang * 2;
-
-    // Create two-sided roof
+    // Create geometry for the roof
     const roofGeometry = new THREE.BufferGeometry();
-
-    // Roof vertices (с учетом смещения центра дома offsetX, offsetZ)
+    
+    // Define roof vertices - starting exactly at wall top height
     const vertices = new Float32Array([
-        // Left side
-        offsetX - roofWidth / 2, 3, offsetZ - roofDepth / 2,  // left bottom back
-        offsetX - roofWidth / 2, 3, offsetZ + roofDepth / 2,  // left bottom front
-        offsetX, 3 + roofHeight, offsetZ - roofDepth / 2,      // top back
-        offsetX, 3 + roofHeight, offsetZ + roofDepth / 2,      // top front
-
-        // Right side
-        offsetX + roofWidth / 2, 3, offsetZ - roofDepth / 2,  // right bottom back
-        offsetX + roofWidth / 2, 3, offsetZ + roofDepth / 2,  // right bottom front
-        offsetX, 3 + roofHeight, offsetZ - roofDepth / 2,      // top back (repeated)
-        offsetX, 3 + roofHeight, offsetZ + roofDepth / 2,      // top front (repeated)
+        // Left side of roof
+        offsetX - roofWidth / 2, wallTopY, offsetZ - roofDepth / 2,  // front left bottom
+        offsetX - roofWidth / 2, wallTopY, offsetZ + roofDepth / 2,  // back left bottom
+        offsetX, wallTopY + roofHeight, offsetZ - roofDepth / 2,      // front top
+        offsetX, wallTopY + roofHeight, offsetZ + roofDepth / 2,      // back top
+        
+        // Right side of roof
+        offsetX + roofWidth / 2, wallTopY, offsetZ - roofDepth / 2,  // front right bottom
+        offsetX + roofWidth / 2, wallTopY, offsetZ + roofDepth / 2,  // back right bottom
+        offsetX, wallTopY + roofHeight, offsetZ - roofDepth / 2,      // front top (same as left side)
+        offsetX, wallTopY + roofHeight, offsetZ + roofDepth / 2,      // back top (same as left side)
     ]);
 
-    // Indices for triangles
+    // Define the triangles using indices
     const indices = [
-        0, 2, 1,  // left side - triangle 1
-        1, 2, 3,  // left side - triangle 2
-        4, 5, 6,  // right side - triangle 1
-        5, 7, 6   // right side - triangle 2
+        // Left side triangles
+        0, 2, 1,  // front left
+        1, 2, 3,  // back left
+        
+        // Right side triangles
+        4, 5, 6,  // front right
+        5, 7, 6   // back right
     ];
-
-    // Normals (остаются относительными)
-    const normals = new Float32Array([
-        -0.707, 0.707, 0, -0.707, 0.707, 0, -0.707, 0.707, 0, -0.707, 0.707, 0, // Left side slope normal
-        0.707, 0.707, 0, 0.707, 0.707, 0, 0.707, 0.707, 0, 0.707, 0.707, 0, // Right side slope normal
-    ]);
-
 
     roofGeometry.setIndex(indices);
     roofGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-    roofGeometry.computeVertexNormals(); // Рассчитать нормали автоматически для лучшего освещения
-    // roofGeometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3)); // Можно убрать, если computeVertexNormals() работает хорошо
+    roofGeometry.computeVertexNormals();
 
-    const roofMaterial = verifyMaterial(materials.roof); // Используем verifyMaterial
     const roof = new THREE.Mesh(roofGeometry, roofMaterial);
     roof.castShadow = true;
-    roof.userData = { type: 'roof' }; // Маркируем как крышу для возможности скрытия
+    roof.userData = { type: 'roof' };
     houseGroup.add(roof);
 
-    // Add gables (фронтоны) - также с учетом смещения
-    // Front gable
+    // Front gable - using same material and double-sided rendering
     const frontGableGeometry = new THREE.BufferGeometry();
     const frontGableVertices = new Float32Array([
-        offsetX - width / 2, 3, offsetZ + depth / 2,           // bottom left
-        offsetX + width / 2, 3, offsetZ + depth / 2,           // bottom right
-        offsetX, 3 + roofHeight, offsetZ + depth / 2          // top
+        offsetX - width / 2, wallTopY, offsetZ + depth / 2,           // bottom left
+        offsetX + width / 2, wallTopY, offsetZ + depth / 2,           // bottom right
+        offsetX, wallTopY + roofHeight, offsetZ + depth / 2           // top center
     ]);
     frontGableGeometry.setAttribute('position', new THREE.BufferAttribute(frontGableVertices, 3));
+    frontGableGeometry.setIndex([0, 1, 2]);
     frontGableGeometry.computeVertexNormals();
-    const frontGable = new THREE.Mesh(frontGableGeometry, verifyMaterial(materials.wall)); // Используем verifyMaterial
+    
+    // Gable material - slightly less transparent than the roof
+    const gableMaterial = new THREE.MeshStandardMaterial({
+        color: 0xf5f5f5,
+        roughness: 0.8,
+        metalness: 0.2,
+        transparent: true,
+        opacity: 0.85,
+        side: THREE.DoubleSide
+    });
+    
+    const frontGable = new THREE.Mesh(frontGableGeometry, gableMaterial);
     frontGable.castShadow = true;
-    frontGable.userData = { type: 'roof' }; // Маркируем как крышу
+    frontGable.userData = { type: 'roof' };
     houseGroup.add(frontGable);
 
-    // Back gable
+    // Back gable - using same approach
     const backGableGeometry = new THREE.BufferGeometry();
     const backGableVertices = new Float32Array([
-        offsetX - width / 2, 3, offsetZ - depth / 2,           // bottom left
-        offsetX + width / 2, 3, offsetZ - depth / 2,           // bottom right
-        offsetX, 3 + roofHeight, offsetZ - depth / 2          // top
+        offsetX - width / 2, wallTopY, offsetZ - depth / 2,           // bottom left
+        offsetX + width / 2, wallTopY, offsetZ - depth / 2,           // bottom right
+        offsetX, wallTopY + roofHeight, offsetZ - depth / 2           // top center
     ]);
     backGableGeometry.setAttribute('position', new THREE.BufferAttribute(backGableVertices, 3));
+    backGableGeometry.setIndex([0, 1, 2]);
     backGableGeometry.computeVertexNormals();
-    const backGable = new THREE.Mesh(backGableGeometry, verifyMaterial(materials.wall)); // Используем verifyMaterial
+    
+    const backGable = new THREE.Mesh(backGableGeometry, gableMaterial);
     backGable.castShadow = true;
-    backGable.userData = { type: 'roof' }; // Маркируем как крышу
+    backGable.userData = { type: 'roof' };
     houseGroup.add(backGable);
 };
 
@@ -2078,9 +2098,6 @@ const onMouseClick = (event: MouseEvent) => {
             wall.material = materials.wallSelected;
           });
         }
-        
-        // Send notification
-        notificationStore.addInfo(`Выбрана комната: ${room.name}`);
       }
     }
   }
