@@ -2071,24 +2071,31 @@ const onMouseClick = (event: MouseEvent) => {
                     
                     // Add or remove point light
                     if (device.isOn) {
-                        if (!roomLights.has(device.id)) {
-                            const pointLight = new THREE.PointLight(0xffff99, 1, 10);
-                            pointLight.position.copy(lightObject.position);
-                            scene.add(pointLight);
-                            roomLights.set(device.id, pointLight);
+                if (!roomLights.has(device.id)) {
+                    const pointLight = new THREE.PointLight(0xffff99, 2.5, 15); // Increased intensity from 1 to 2.5 and range from 10 to 15
+                    // Find bulb position to match light position
+                    let bulbPosition = new THREE.Vector3();
+                    lightObject.children.forEach(child => {
+                        if (child.name === 'bulb') {
+                            bulbPosition.copy(child.position);
                         }
-                    } else {
-                        const light = roomLights.get(device.id);
-                        if (light) {
-                            scene.remove(light);
-                            roomLights.delete(device.id);
-                        }
-                    }
+                    });
+                    pointLight.position.copy(bulbPosition);
+                    lightObject.add(pointLight); // Add to lightGroup instead of scene
+                    roomLights.set(device.id, pointLight);
+                }
+            } else {
+                const light = roomLights.get(device.id);
+                if (light) {
+                    light.parent?.remove(light); // Remove from parent instead of scene
+                    roomLights.delete(device.id);
+                }
+            }
                 }
                 
-                // Send notification
-                const actionText = device.isOn ? 'включен' : 'выключен';
-                notificationStore.addInfo(`${device.name} ${actionText}`);
+                // Отправка уведомления
+                // const actionText = device.isOn ? 'включен' : 'выключен';
+                // notificationStore.addInfo(`${device.name} ${actionText}`);
             }
                 
         } else if (userData.type === 'fan') {
