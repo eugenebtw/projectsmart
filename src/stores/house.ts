@@ -105,6 +105,9 @@ export const useHouseStore = defineStore('house', () => {
     }
   ]);
 
+  // Добавляем состояние для выбранной комнаты
+  const selectedRoomId = ref<string | null>(null);
+
   // Предел энергопотребления
   const powerLimit = 2000; // Ватт
 
@@ -127,6 +130,16 @@ export const useHouseStore = defineStore('house', () => {
 
   const isOverloaded = computed(() => {
     return totalPower.value > powerLimit;
+  });
+
+  // Метод для выбора комнаты
+  const selectRoom = (roomId: string | null) => {
+    selectedRoomId.value = roomId;
+  };
+
+  // Получить текущую выбранную комнату
+  const selectedRoom = computed(() => {
+    return getRoomById(selectedRoomId.value);
   });
 
   // Действия
@@ -288,6 +301,9 @@ export const useHouseStore = defineStore('house', () => {
     totalPower,
     isOverloaded,
     powerLimit,
+    selectedRoomId,
+    selectedRoom,
+    selectRoom,
     getRoomById,
     getDeviceById,
     toggleDevice,

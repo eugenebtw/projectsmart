@@ -28,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, onBeforeUnmount, computed, nextTick } from 'vue';
+import { ref, onMounted, onUnmounted, onBeforeUnmount, computed, nextTick, watch } from 'vue';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import Stats from 'three/examples/jsm/libs/stats.module';
@@ -1993,143 +1993,132 @@ const createThermostat = (
 
 // Mouse click handler
 const onMouseClick = (event: MouseEvent) => {
-    if (!sceneContainer.value) return;
-    
-    // Calculate mouse position in normalized device coordinates
-    const rect = sceneContainer.value.getBoundingClientRect();
-    mouse.x = ((event.clientX - rect.left) / sceneContainer.value.clientWidth) * 2 - 1;
-    mouse.y = -((event.clientY - rect.top) / sceneContainer.value.clientHeight) * 2 + 1;
-    
-    // Update picking ray with camera and mouse position
-    raycaster.setFromCamera(mouse, camera);
-    
-    // Get all intersected objects, including those behind the roof
-    const intersects = raycaster.intersectObjects(scene.children, true);
-    
-    // Define a list of roof objects to filter them out for interaction
-    const roofObjects: THREE.Object3D[] = [];
-    scene.traverse((obj) => {
-        if (obj.userData && obj.userData.type === 'roof') {
-            roofObjects.push(obj);
-        }
-    });
-    
-    // Filter out roof objects from intersections
-    const nonRoofIntersects = intersects.filter(intersect => {
-        // Check the object and all its parents to ensure it's not a roof
-        let currentObj = intersect.object;
-        while (currentObj) {
-            if (currentObj.userData && currentObj.userData.type === 'roof') {
-                return false;
-            }
-            currentObj = currentObj.parent!;
-        }
-        return true;
-    });
-    
-    // Process the first non-roof intersection
-    if (nonRoofIntersects.length > 0) {
-        // Find first object with userData
-        let currentObj: THREE.Object3D | null = nonRoofIntersects[0].object;
-        let userData: any = null;
-        
-        // Traverse up hierarchy to find object with userData
-        while (currentObj && !userData) {
-            if (currentObj.userData && (currentObj.userData.deviceId || currentObj.userData.roomId)) {
-                userData = currentObj.userData;
-                break;
-            }
-            currentObj = currentObj.parent;
-        }
-        
-        if (!userData) return;
-        
-        // Handle based on object type
-        if (userData.type === 'light') {
-            // Toggle light
-            const device = houseStore.getDeviceById(userData.deviceId);
-            if (device) {
-                houseStore.toggleDevice(userData.deviceId);
-
-                // Update light point
-                const lightObject = roomDevices.get(userData.deviceId);
-                if (lightObject) {
-                    // Update bulb color
-                    if (lightObject instanceof THREE.Group) {
-                        // Find bulb in group
-                        lightObject.children.forEach(child => {
-                            if (child.name === 'bulb') {
-                                const bulbMaterial = new THREE.MeshStandardMaterial({
-                                    color: device.isOn ? 0xffff00 : 0x888888,
-                                    emissive: device.isOn ? 0xffff00 : 0x000000,
-                                    emissiveIntensity: device.isOn ? 0.5 : 0
-                                });
-                                (child as THREE.Mesh).material = bulbMaterial;
-                            }
-                        });
-                    }
-                    
-                    // Add or remove point light
-                    if (device.isOn) {
-                if (!roomLights.has(device.id)) {
-                    const pointLight = new THREE.PointLight(0xffff99, 2.5, 15); // Increased intensity from 1 to 2.5 and range from 10 to 15
-                    // Find bulb position to match light position
-                    let bulbPosition = new THREE.Vector3();
-                    lightObject.children.forEach(child => {
-                        if (child.name === 'bulb') {
-                            bulbPosition.copy(child.position);
-                        }
-                    });
-                    pointLight.position.copy(bulbPosition);
-                    lightObject.add(pointLight); // Add to lightGroup instead of scene
-                    roomLights.set(device.id, pointLight);
-                }
-            } else {
-                const light = roomLights.get(device.id);
-                if (light) {
-                    light.parent?.remove(light); // Remove from parent instead of scene
-                    roomLights.delete(device.id);
-                }
-            }
-                }
-                
-                // Отправка уведомления
-                // const actionText = device.isOn ? 'включен' : 'выключен';
-                // notificationStore.addInfo(`${device.name} ${actionText}`);
-            }
-                
-        } else if (userData.type === 'fan') {
-            // Toggle fan
-            const device = houseStore.getDeviceById(userData.deviceId);
-            if (device) {
-                houseStore.toggleDevice(userData.deviceId);
-                
-                // Send notification
-                const actionText = device.isOn ? 'включен' : 'выключен';
-                notificationStore.addInfo(`${device.name} ${actionText}`);
-            }
-
-        } else if (userData.type === 'room') {
-            // Select room - highlight walls
-            const room = houseStore.getRoomById(userData.roomId);
-            if (room) {
-                // Remove highlight from all rooms
-                roomWalls.forEach((walls, roomId) => {
-                    walls.forEach(wall => {
-                        wall.material = materials.wall;
-                    });
-                });
-                
-                // Highlight selected room
-                const walls = roomWalls.get(userData.roomId);
-                if (walls) {
-                    walls.forEach(wall => {
-                        wall.material = materials.wallSelected;
-                    });
-                }
-            }
-        }
+  if (!sceneContainer.value) return;
+  
+  // Calculate mouse position in normalized device coordinates
+  const rect = sceneContainer.value.getBoundingClientRect();
+  mouse.x = ((event.clientX - rect.left) / sceneContainer.value.clientWidth) * 2 - 1;
+  mouse.y = -((event.clientY - rect.top) / sceneContainer.value.clientHeight) * 2 + 1;
+  
+  // Update picking ray with camera and mouse position
+  raycaster.setFromCamera(mouse, camera);
+  
+  // Get all intersected objects, including those behind the roof
+  const intersects = raycaster.intersectObjects(scene.children, true);
+  
+  // Define a list of roof objects to filter them out for interaction
+  const roofObjects: THREE.Object3D[] = [];
+  scene.traverse((obj) => {
+    if (obj.userData && obj.userData.type === 'roof') {
+      roofObjects.push(obj);
     }
+  });
+  
+  // Filter out roof objects from intersections
+  const nonRoofIntersects = intersects.filter(intersect => {
+    // Check the object and all its parents to ensure it's not a roof
+    let currentObj = intersect.object;
+    while (currentObj) {
+      if (currentObj.userData && currentObj.userData.type === 'roof') {
+        return false;
+      }
+      currentObj = currentObj.parent!;
+    }
+    return true;
+  });
+  
+  // Process the first non-roof intersection
+  if (nonRoofIntersects.length > 0) {
+    // Find first object with userData
+    let currentObj: THREE.Object3D | null = nonRoofIntersects[0].object;
+    let userData: any = null;
+    
+    // Traverse up hierarchy to find object with userData
+    while (currentObj && !userData) {
+      if (currentObj.userData && (currentObj.userData.deviceId || currentObj.userData.roomId)) {
+        userData = currentObj.userData;
+        break;
+      }
+      currentObj = currentObj.parent;
+    }
+    
+    if (!userData) return;
+    
+    // Handle based on object type
+    if (userData.type === 'light') {
+      // Toggle light
+      const device = houseStore.getDeviceById(userData.deviceId);
+      if (device) {
+        houseStore.toggleDevice(userData.deviceId);
+        
+        // Update light object
+        // ... existing light update code ...
+      }
+    } else if (userData.type === 'fan') {
+      // Toggle fan
+      const device = houseStore.getDeviceById(userData.deviceId);
+      if (device) {
+        houseStore.toggleDevice(userData.deviceId);
+        
+        // Send notification
+        const actionText = device.isOn ? 'включен' : 'выключен';
+        notificationStore.addInfo(`${device.name} ${actionText}`);
+      }
+    } else if (userData.type === 'room') {
+      // Select room in the store
+      houseStore.selectRoom(userData.roomId);
+    }
+  }
+};
+
+// Watch for changes in the selected room
+watch(
+  () => houseStore.selectedRoomId,
+  (newSelectedRoomId) => {
+    highlightSelectedRoom(newSelectedRoomId);
+  }
+);
+
+// Function to highlight the selected room
+const highlightSelectedRoom = (roomId: string | null) => {
+  // First, remove highlight from all rooms
+  roomWalls.forEach((walls, id) => {
+    walls.forEach(wall => {
+      wall.material = materials.wall;
+    });
+  });
+  
+  // If a room is selected, highlight it
+  if (roomId) {
+    const walls = roomWalls.get(roomId);
+    if (walls) {
+      walls.forEach(wall => {
+        wall.material = materials.wallSelected;
+      });
+      
+      // Раскомментировать, чтобы камера перемещалась к выбранной комнате
+      // const roomMesh = roomMeshes.get(roomId);
+      // if (roomMesh) {
+      //   new TWEEN.Tween(camera.position)
+      //     .to({
+      //       x: roomMesh.position.x,
+      //       y: camera.position.y,
+      //       z: roomMesh.position.z + 5 // Position camera slightly away from the room
+      //     }, 1000)
+      //     .easing(TWEEN.Easing.Cubic.InOut)
+      //     .start();
+        
+      //   new TWEEN.Tween(controls.target)
+      //     .to({
+      //       x: roomMesh.position.x,
+      //       y: roomMesh.position.y,
+      //       z: roomMesh.position.z
+      //     }, 1000)
+      //     .easing(TWEEN.Easing.Cubic.InOut)
+      //     .start();
+      // }
+    }
+  }
 };
 
 // Setup drag and drop

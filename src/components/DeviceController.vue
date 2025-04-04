@@ -105,13 +105,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { useHouseStore } from '../stores/house';
 import { Light, Thermostat, Fan } from '../types';
 
 const houseStore = useHouseStore();
 
-const selectedRoomId = ref<string | null>(null);
+// Use the selected room ID from the store
+const selectedRoomId = computed(() => houseStore.selectedRoomId);
 
 // Вычисляемые свойства
 const rooms = computed(() => houseStore.rooms);
@@ -121,14 +122,13 @@ const totalPower = computed(() => houseStore.totalPower);
 const isEnergyOverload = computed(() => houseStore.isOverloaded);
 const energyPercentage = computed(() => Math.min((totalPower.value / 2000) * 100, 100));
 
-// При монтировании выбираем первую комнату по умолчанию
-if (rooms.value.length > 0) {
-  selectedRoomId.value = rooms.value[0].id;
+if (!selectedRoomId.value && rooms.value.length > 0) {
+  houseStore.selectRoom(rooms.value[0].id);
 }
 
 // Методы
 const selectRoom = (roomId: string) => {
-  selectedRoomId.value = roomId;
+  houseStore.selectRoom(roomId);
 };
 
 const toggleDevice = (deviceId: string) => {
